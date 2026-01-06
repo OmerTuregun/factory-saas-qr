@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Veritabanı Servisi
+  db:
+    image: postgres:15-alpine
+    container_name: qr_saas_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: QrAssetDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - qr-network
+
+  # Veritabanı Yönetim Paneli
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: qr_saas_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password123
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - qr-network
+
+  # .NET Backend API
+  backend:
+    build:
+      context: ./QrAssetTracker.API
+      dockerfile: Dockerfile
+    container_name: qr_saas_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # DİKKAT: Host=db yaptık çünkü docker ağında veritabanının adı 'db'
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=QrAssetDb;Username=admin;Password=password123
+    ports:
+      - "5000:8080"
+    depends_on:
+      - db
+    networks:
+      - qr-network
+
+  # React Frontend (Vite Development Server - Hot Reload)
+  frontend:
+    image: node:20-alpine
+    container_name: qr_saas_frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - ./client:/app
+      - /app/node_modules  # node_modules'u container içinde tut (performance)
+    ports:
+      - "5173:5173"  # Vite dev server default port
+    depends_on:
+      - backend
+    networks:
+      - qr-network
+    environment:
+      - VITE_API_URL=http://localhost:5000
+      - CHOKIDAR_USEPOLLING=true  # Docker'da file watching için
+
+volumes:
+  postgres_data:
+
+networks:
+  qr-network:
+    driver: bridge
