@@ -9,6 +9,7 @@ import {
   X,
   LogOut,
   ScanLine,
+  Wrench,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -19,7 +20,7 @@ interface DashboardLayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Makineler', href: '/machines', icon: PackageSearch },
-  { name: 'Arızalar', href: '/maintenance', icon: AlertCircle },
+  { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench },
   { name: 'Ayarlar', href: '/settings', icon: Settings },
 ];
 

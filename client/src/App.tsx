@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import MachineDetail from './pages/MachineDetail';
 import QRScanner from './pages/QRScanner';
 import ReportFault from './pages/ReportFault';
+import Maintenance from './pages/Maintenance';
 
 function App() {
   return (
@@ -48,10 +49,7 @@ function App() {
           path="/maintenance"
           element={
             <DashboardLayout>
-              <div className="text-center py-12">
-                <h2 className="text-2xl font-bold text-gray-900">Arızalar</h2>
-                <p className="text-gray-500 mt-2">Bu sayfa geliştirilme aşamasında...</p>
-              </div>
+              <Maintenance />
             </DashboardLayout>
           }
         />
