@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import MachineDetail from './pages/MachineDetail';
+import QRScanner from './pages/QRScanner';
+import ReportFault from './pages/ReportFault';
 
 function App() {
   return (
@@ -33,6 +35,14 @@ function App() {
               <MachineDetail />
             </DashboardLayout>
           }
+        />
+        <Route
+          path="/scan"
+          element={<QRScanner />}
+        />
+        <Route
+          path="/report-fault/:machineId"
+          element={<ReportFault />}
         />
         <Route
           path="/maintenance"

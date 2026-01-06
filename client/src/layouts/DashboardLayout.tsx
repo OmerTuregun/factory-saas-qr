@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Settings,
@@ -8,6 +8,7 @@ import {
   Menu,
   X,
   LogOut,
+  ScanLine,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -25,6 +26,7 @@ const navigation = [
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -117,7 +119,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Header actions */}
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-500">
+              {/* QR Scan Button */}
+              <button
+                onClick={() => navigate('/scan')}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
+              >
+                <ScanLine className="h-5 w-5" />
+                <span className="hidden sm:inline">QR Tara</span>
+              </button>
+
+              <span className="hidden lg:inline text-sm text-gray-500">
                 {new Date().toLocaleDateString('tr-TR', {
                   weekday: 'long',
                   year: 'numeric',
