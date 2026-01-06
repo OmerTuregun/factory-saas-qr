@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
+import MachineDetail from './pages/MachineDetail';
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
                 <h2 className="text-2xl font-bold text-gray-900">Makineler</h2>
                 <p className="text-gray-500 mt-2">Bu sayfa geliştirilme aşamasında...</p>
               </div>
+            </DashboardLayout>
+          }
+        />
+        <Route
+          path="/machines/:id"
+          element={
+            <DashboardLayout>
+              <MachineDetail />
             </DashboardLayout>
           }
         />
