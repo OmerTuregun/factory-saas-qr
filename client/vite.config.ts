@@ -4,6 +4,10 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    exclude: ['xlsx'],
+    include: ['exceljs'],
+  },
   server: {
     host: '0.0.0.0', // Docker'dan dışarıya erişim için
     port: 5173,

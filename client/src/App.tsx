@@ -11,6 +11,7 @@ import QRScanner from './pages/QRScanner';
 import ReportFault from './pages/ReportFault';
 import Maintenance from './pages/Maintenance';
 import TeamManagement from './pages/TeamManagement';
+import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -106,7 +107,19 @@ function App() {
               </ProtectedRoute>
             }
           />
-          </Routes>
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['admin', 'technician']}>
+                  <DashboardLayout>
+                    <Reports />
+                  </DashboardLayout>
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

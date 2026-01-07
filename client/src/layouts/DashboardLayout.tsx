@@ -12,6 +12,7 @@ import {
   Wrench,
   Users,
   Shield,
+  BarChart3,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +25,7 @@ const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['admin', 'technician', 'operator'] },
   { name: 'Makineler', href: '/machines', icon: PackageSearch, roles: ['admin', 'technician'] }, // Operator görmez
   { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench, roles: ['admin', 'technician', 'operator'] },
+  { name: 'Raporlar', href: '/reports', icon: BarChart3, roles: ['admin', 'technician'] }, // Operator görmez
   { name: 'Profil ve Ayarlar', href: '/profile', icon: User, roles: ['admin', 'technician', 'operator'] },
 ];
 

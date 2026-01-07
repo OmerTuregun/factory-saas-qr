@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Calendar, User, Package, AlertCircle, Search, Filter, X, CheckCircle, Trash2 } from 'lucide-react';
+import { Wrench, Calendar, User, Package, AlertCircle, Search, Filter, X, CheckCircle, Trash2, ClipboardList, Activity, Clock } from 'lucide-react';
 import maintenanceService from '../services/maintenanceService';
 import machineService from '../services/machineService';
 import type { MaintenanceLog, Machine } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import StatCard from '../components/common/StatCard';
 import PermissionGuard from '../components/auth/PermissionGuard';
 import { formatDate, getPriorityColor } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
@@ -200,31 +201,30 @@ export default function Maintenance() {
 
       {/* Stats - Using filtered logs */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Toplam Kayıt</p>
-          <p className="text-4xl font-bold text-gray-900 dark:text-white">{filteredLogs.length}</p>
-          {hasActiveFilters && logs.length !== filteredLogs.length && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">/ {logs.length} toplam</p>
-          )}
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Aktif</p>
-          <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
-            {filteredLogs.filter((l) => l.status === 'pending' || l.status === 'in_progress').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Çözüldü</p>
-          <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-            {filteredLogs.filter((l) => l.status === 'resolved').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Acil</p>
-          <p className="text-4xl font-bold text-red-600 dark:text-red-400">
-            {filteredLogs.filter((l) => l.priority === 'critical').length}
-          </p>
-        </div>
+        <StatCard
+          title="Toplam Kayıt"
+          value={filteredLogs.length}
+          icon={ClipboardList}
+          color="blue"
+        />
+        <StatCard
+          title="Aktif"
+          value={filteredLogs.filter((l) => l.status === 'pending' || l.status === 'in_progress').length}
+          icon={Activity}
+          color="orange"
+        />
+        <StatCard
+          title="Çözüldü"
+          value={filteredLogs.filter((l) => l.status === 'resolved').length}
+          icon={CheckCircle}
+          color="green"
+        />
+        <StatCard
+          title="Acil"
+          value={filteredLogs.filter((l) => l.priority === 'critical').length}
+          icon={AlertCircle}
+          color="red"
+        />
       </div>
 
       {/* Filters Bar - Blue Design like Machines */}
