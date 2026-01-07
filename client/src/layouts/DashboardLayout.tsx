@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Settings,
+  User,
   PackageSearch,
   AlertCircle,
   Menu,
@@ -22,7 +22,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Makineler', href: '/machines', icon: PackageSearch },
   { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench },
-  { name: 'Ayarlar', href: '/settings', icon: Settings },
+  { name: 'Profil ve Ayarlar', href: '/profile', icon: User },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 dark:bg-gray-950 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -133,12 +133,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white border-b border-gray-100">
+        <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
           <div className="flex h-16 items-center gap-4 px-4 sm:px-6 lg:px-8">
             {/* Mobile menu button */}
             <button
               type="button"
-              className="lg:hidden text-gray-600 hover:text-gray-900"
+              className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-6 w-6" />
@@ -158,7 +158,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <span className="hidden sm:inline">QR Tara</span>
               </button>
 
-              <span className="hidden lg:inline text-sm text-gray-500">
+              <span className="hidden lg:inline text-sm text-gray-500 dark:text-gray-400">
                 {new Date().toLocaleDateString('tr-TR', {
                   weekday: 'long',
                   year: 'numeric',

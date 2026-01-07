@@ -8,6 +8,7 @@ import MachineDetail from './pages/MachineDetail';
 import QRScanner from './pages/QRScanner';
 import ReportFault from './pages/ReportFault';
 import Maintenance from './pages/Maintenance';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import EmailConfirmed from './pages/EmailConfirmed';
@@ -80,14 +81,11 @@ function App() {
             }
           />
           <Route
-            path="/settings"
+            path="/profile"
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <div className="text-center py-12">
-                    <h2 className="text-2xl font-bold text-gray-900">Ayarlar</h2>
-                    <p className="text-gray-500 mt-2">Bu sayfa geliştirilme aşamasında...</p>
-                  </div>
+                  <Profile />
                 </DashboardLayout>
               </ProtectedRoute>
             }

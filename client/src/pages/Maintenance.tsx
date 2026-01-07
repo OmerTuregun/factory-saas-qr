@@ -133,88 +133,88 @@ export default function Maintenance() {
 
       {/* Stats - Using filtered logs */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 mb-2">Toplam Kayıt</p>
-          <p className="text-4xl font-bold text-gray-900">{filteredLogs.length}</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Toplam Kayıt</p>
+          <p className="text-4xl font-bold text-gray-900 dark:text-white">{filteredLogs.length}</p>
           {hasActiveFilters && logs.length !== filteredLogs.length && (
-            <p className="text-sm text-gray-400 mt-2">/ {logs.length} toplam</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">/ {logs.length} toplam</p>
           )}
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 mb-2">Aktif</p>
-          <p className="text-4xl font-bold text-orange-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Aktif</p>
+          <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
             {filteredLogs.filter((l) => l.status === 'pending' || l.status === 'in_progress').length}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 mb-2">Çözüldü</p>
-          <p className="text-4xl font-bold text-green-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Çözüldü</p>
+          <p className="text-4xl font-bold text-green-600 dark:text-green-400">
             {filteredLogs.filter((l) => l.status === 'resolved').length}
           </p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <p className="text-base font-semibold text-gray-600 mb-2">Acil</p>
-          <p className="text-4xl font-bold text-red-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+          <p className="text-base font-semibold text-gray-600 dark:text-gray-400 mb-2">Acil</p>
+          <p className="text-4xl font-bold text-red-600 dark:text-red-400">
             {filteredLogs.filter((l) => l.priority === 'critical').length}
           </p>
         </div>
       </div>
 
-      {/* Filters Bar - Clean White Design */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      {/* Filters Bar - Blue Design like Machines */}
+      <div className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm p-5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Search */}
           <div className="md:col-span-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Arama
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/70" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Açıklama veya makine ara..."
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+                className="w-full pl-9 pr-4 py-2 bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
               />
             </div>
           </div>
 
           {/* Start Date */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Başlangıç
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
             />
           </div>
 
           {/* End Date */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Bitiş
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
             />
           </div>
 
           {/* Status Filter */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Durum
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
             >
               <option value="all">Tümü</option>
               <option value="pending">Bekliyor</option>
@@ -226,13 +226,13 @@ export default function Maintenance() {
 
           {/* Priority Filter */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Öncelik
             </label>
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
             >
               <option value="all">Tümü</option>
               <option value="low">Düşük</option>
@@ -246,13 +246,13 @@ export default function Maintenance() {
         {/* Second Row - Machine Filter */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4">
           <div className="md:col-span-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-white mb-1.5">
               Makine
             </label>
             <select
               value={machineFilter}
               onChange={(e) => setMachineFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+              className="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
             >
               <option value="all">Tüm Makineler</option>
               {machines.map((machine) => (
@@ -266,22 +266,22 @@ export default function Maintenance() {
 
         {/* Active Filters Display */}
         {hasActiveFilters && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 flex-wrap">
-            <Filter className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/20 flex-wrap">
+            <Filter className="h-4 w-4 text-white/70" />
+            <span className="text-sm font-medium text-white">
               {filteredLogs.length} kayıt bulundu
             </span>
             {searchQuery && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/20 text-white text-xs font-medium rounded-full border border-white/30">
                 "{searchQuery}"
-                <button onClick={() => setSearchQuery('')} className="hover:text-blue-900">
+                <button onClick={() => setSearchQuery('')} className="hover:text-white/70">
                   <X className="h-3 w-3" />
                 </button>
               </span>
             )}
             <button
               onClick={clearFilters}
-              className="ml-auto px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+              className="ml-auto px-4 py-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
             >
               Filtreleri Temizle
             </button>
@@ -290,9 +290,9 @@ export default function Maintenance() {
       </div>
 
       {/* Maintenance Logs Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">Tüm Kayıtlar</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tüm Kayıtlar</h2>
         </div>
 
         <div className="overflow-x-auto">
@@ -335,23 +335,23 @@ export default function Maintenance() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Makine
                   </th>
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Sorun
                   </th>
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Öncelik
                   </th>
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Durum
                   </th>
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Bildiren
                   </th>
-                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 uppercase tracking-wide">
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Tarih
                   </th>
                 </tr>
@@ -369,13 +369,13 @@ export default function Maintenance() {
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-900">{log.machineName}</p>
-                          <p className="text-xs text-gray-500">{log.machineQrCode}</p>
+                          <p className="font-medium text-gray-900 dark:text-white">{log.machineName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{log.machineQrCode}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <p className="text-sm text-gray-900 line-clamp-2 max-w-xs">
+                      <p className="text-sm text-gray-900 dark:text-gray-300 line-clamp-2 max-w-xs">
                         {log.description}
                       </p>
                     </td>
@@ -418,14 +418,14 @@ export default function Maintenance() {
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                        <User className="h-4 w-4 text-gray-400" />
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                        <User className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         {log.reportedBy || 'Anonim'}
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                        <Calendar className="h-4 w-4 text-gray-400" />
+                      <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                        <Calendar className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                         {new Date(log.createdAt).toLocaleDateString('tr-TR', {
                           day: '2-digit',
                           month: 'short',

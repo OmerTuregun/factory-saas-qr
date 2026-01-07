@@ -165,8 +165,8 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Hızlı İşlemler</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Hızlı İşlemler</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* QR Scan Action */}
           <button
@@ -233,44 +233,44 @@ export default function Dashboard() {
       {/* System Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Son Aktivite</h3>
-            <ClipboardList className="h-5 w-5 text-gray-400" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Son Aktivite</h3>
+            <ClipboardList className="h-5 w-5 text-gray-400 dark:text-gray-500" />
           </div>
           <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-              <div className="bg-green-100 rounded-full p-2">
-                <Activity className="h-4 w-4 text-green-600" />
+            <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-2">
+                <Activity className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">Sistem Aktif</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Sistem Aktif</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {stats.activeMachines} makine çalışıyor
                 </p>
               </div>
             </div>
             {stats.criticalIssues > 0 && (
-              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
-                <div className="bg-red-100 rounded-full p-2">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
+              <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">Acil Arıza</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Acil Arıza</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {stats.criticalIssues} adet acil müdahale bekliyor
                   </p>
                 </div>
               </div>
             )}
             {stats.underMaintenance > 0 && (
-              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
-                <div className="bg-orange-100 rounded-full p-2">
-                  <Wrench className="h-4 w-4 text-orange-600" />
+              <div className="flex items-start gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <div className="bg-orange-100 dark:bg-orange-900/30 rounded-full p-2">
+                  <Wrench className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">Bakımda</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">Bakımda</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {stats.underMaintenance} makine bakım altında
                   </p>
                 </div>
@@ -280,31 +280,31 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Tips */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Hızlı Yardım</h3>
-          <div className="space-y-4 text-sm text-gray-600">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Hızlı Yardım</h3>
+          <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
             <div className="flex items-start gap-3">
-              <div className="bg-blue-50 rounded-full p-1 mt-0.5">
-                <span className="text-blue-600 font-bold text-xs">1</span>
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
+                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
               </div>
               <p>
-                <span className="font-medium text-gray-900">QR Tara:</span> Mobil cihazınızla makine QR kodunu okutun
+                <span className="font-medium text-gray-900 dark:text-white">QR Tara:</span> Mobil cihazınızla makine QR kodunu okutun
               </p>
             </div>
             <div className="flex items-start gap-3">
-              <div className="bg-blue-50 rounded-full p-1 mt-0.5">
-                <span className="text-blue-600 font-bold text-xs">2</span>
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
+                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">2</span>
               </div>
               <p>
-                <span className="font-medium text-gray-900">Arıza Bildir:</span> Sorunu açıklayın ve öncelik seçin
+                <span className="font-medium text-gray-900 dark:text-white">Arıza Bildir:</span> Sorunu açıklayın ve öncelik seçin
               </p>
             </div>
             <div className="flex items-start gap-3">
-              <div className="bg-blue-50 rounded-full p-1 mt-0.5">
-                <span className="text-blue-600 font-bold text-xs">3</span>
+              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
+                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">3</span>
               </div>
               <p>
-                <span className="font-medium text-gray-900">Takip Et:</span> Bakım geçmişinden durumu kontrol edin
+                <span className="font-medium text-gray-900 dark:text-white">Takip Et:</span> Bakım geçmişinden durumu kontrol edin
               </p>
             </div>
           </div>

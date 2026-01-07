@@ -137,8 +137,8 @@ export default function Machines() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Makine Yönetimi</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Makine Yönetimi</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Tüm makinelerinizi görüntüleyin ve yönetin
           </p>
         </div>
@@ -250,21 +250,21 @@ export default function Machines() {
 
       {/* Content */}
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-12">
           <LoadingSpinner />
         </div>
       ) : error ? (
         <ErrorMessage message={error} />
       ) : machines.length === 0 ? (
         // No machines at all
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-          <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Filter className="h-8 w-8 text-gray-400" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-12 text-center">
+          <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Filter className="h-8 w-8 text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             Henüz Makine Eklenmemiş
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             Sisteme ilk makinenizi ekleyerek başlayın.
           </p>
           <button
@@ -277,12 +277,12 @@ export default function Machines() {
         </div>
       ) : filteredMachines.length === 0 ? (
         // Empty State
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-          <Filter className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-12 text-center">
+          <Filter className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             Makine Bulunamadı
           </h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             Arama kriterlerinize uygun makine bulunamadı. Filtreleri değiştirmeyi deneyin.
           </p>
           <button
@@ -320,7 +320,7 @@ export default function Machines() {
         </div>
       ) : (
         // List View
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

@@ -11,6 +11,7 @@ interface User {
   role: string;
   factoryId: string; // UUID
   factoryName?: string;
+  factoryCode?: string;
 }
 
 interface AuthContextType {
@@ -19,6 +20,8 @@ interface AuthContextType {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  updateProfile: (firstName: string, lastName: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -114,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: profile.role || 'operator',
         factoryId: profile.factory_id || '',
         factoryName: profile.factory?.name || '',
+        factoryCode: profile.factory?.code || '',
       };
 
       setUser(userData);
@@ -328,12 +332,94 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (firstName: string, lastName: string) => {
+    if (!user) {
+      throw new Error('Kullanıcı oturumu bulunamadı');
+    }
+
+    try {
+      console.log('🔄 Updating profile...');
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      // Get current session for auth token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('Oturum bulunamadı');
+      }
+
+      // Update profile with native fetch
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${user.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Profile update failed:', response.status, errorText);
+        throw new Error('Profil güncellenemedi');
+      }
+
+      // Update local user state
+      setUser({
+        ...user,
+        firstName,
+        lastName,
+      });
+
+      console.log('✅ Profile updated successfully');
+    } catch (error: any) {
+      console.error('❌ Profile update error:', error);
+      throw new Error(error.message || 'Profil güncellenirken bir hata oluştu');
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    if (!user) {
+      throw new Error('Kullanıcı oturumu bulunamadı');
+    }
+
+    try {
+      console.log('🔄 Updating password...');
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        console.error('❌ Password update failed:', error);
+        throw error;
+      }
+
+      console.log('✅ Password updated successfully');
+    } catch (error: any) {
+      console.error('❌ Password update error:', error);
+      throw new Error(error.message || 'Şifre güncellenirken bir hata oluştu');
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
     login,
     register,
     logout,
+    updateProfile,
+    updatePassword,
     isAuthenticated: !!user,
   };
 
