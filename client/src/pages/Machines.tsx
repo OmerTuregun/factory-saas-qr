@@ -10,6 +10,7 @@ import DeleteConfirmModal from '../components/machines/DeleteConfirmModal';
 import QRCodeModal from '../components/machines/QRCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import PermissionGuard from '../components/auth/PermissionGuard';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -142,13 +143,15 @@ export default function Machines() {
             Tüm makinelerinizi görüntüleyin ve yönetin
           </p>
         </div>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
-        >
-          <Plus className="h-5 w-5" />
-          Yeni Makine Ekle
-        </button>
+        <PermissionGuard allowedRoles={['admin']}>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
+          >
+            <Plus className="h-5 w-5" />
+            Yeni Makine Ekle
+          </button>
+        </PermissionGuard>
       </div>
 
       {/* Filters Bar - Blue Theme */}

@@ -22,6 +22,7 @@ interface AuthContextType {
   logout: () => void;
   updateProfile: (firstName: string, lastName: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  updateUserRole: (userId: string, newRole: string) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -412,6 +413,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserRole = async (userId: string, newRole: string) => {
+    if (!user) {
+      throw new Error('Kullanıcı oturumu bulunamadı');
+    }
+
+    // Only admins can update roles
+    if (user.role !== 'admin') {
+      throw new Error('Bu işlem için yetkiniz yok');
+    }
+
+    // User cannot change their own role
+    if (userId === user.id) {
+      throw new Error('Kendi rolünüzü değiştiremezsiniz');
+    }
+
+    try {
+      console.log('🔄 Updating user role:', userId, 'to', newRole);
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      // Get current session for auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Oturum bulunamadı');
+      }
+
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            role: newRole,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Role update failed:', response.status, errorText);
+        throw new Error('Rol güncellenemedi');
+      }
+
+      console.log('✅ User role updated successfully');
+    } catch (error: any) {
+      console.error('❌ Role update error:', error);
+      throw new Error(error.message || 'Rol güncellenirken bir hata oluştu');
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
@@ -420,6 +477,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     updateProfile,
     updatePassword,
+    updateUserRole,
     isAuthenticated: !!user,
   };
 

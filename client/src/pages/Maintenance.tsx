@@ -1,13 +1,15 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Calendar, User, Package, AlertCircle, Search, Filter, X } from 'lucide-react';
+import { Wrench, Calendar, User, Package, AlertCircle, Search, Filter, X, CheckCircle, Trash2 } from 'lucide-react';
 import maintenanceService from '../services/maintenanceService';
 import machineService from '../services/machineService';
 import type { MaintenanceLog, Machine } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import PermissionGuard from '../components/auth/PermissionGuard';
 import { formatDate, getPriorityColor } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function Maintenance() {
   const navigate = useNavigate();
@@ -104,6 +106,71 @@ export default function Maintenance() {
     setStatusFilter('all');
     setPriorityFilter('all');
     setMachineFilter('all');
+  };
+
+  const handleResolveLog = async (logId: string) => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/maintenance_logs?id=eq.${logId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            status: 'resolved',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Durum güncellenemedi');
+      }
+
+      toast.success('Arıza çözüldü olarak işaretlendi!');
+      fetchData();
+    } catch (err: any) {
+      console.error('Error resolving log:', err);
+      toast.error('Durum güncellenirken bir hata oluştu.');
+    }
+  };
+
+  const handleDeleteLog = async (logId: string) => {
+    if (!window.confirm('Bu arıza kaydını silmek istediğinizden emin misiniz?')) {
+      return;
+    }
+
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/maintenance_logs?id=eq.${logId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Kayıt silinemedi');
+      }
+
+      toast.success('Arıza kaydı silindi!');
+      fetchData();
+    } catch (err: any) {
+      console.error('Error deleting log:', err);
+      toast.error('Kayıt silinirken bir hata oluştu.');
+    }
   };
 
   const hasActiveFilters = searchQuery || startDate || endDate || statusFilter !== 'all' || 
@@ -354,6 +421,9 @@ export default function Maintenance() {
                   <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                     Tarih
                   </th>
+                  <th className="text-left py-4 px-4 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                    İşlemler
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -433,6 +503,39 @@ export default function Maintenance() {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-1">
+                        {/* Resolve Button - Admin & Technician only */}
+                        {log.status !== 'resolved' && log.status !== 'closed' && (
+                          <PermissionGuard allowedRoles={['admin', 'technician']}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleResolveLog(log.id);
+                              }}
+                              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 rounded-lg transition-colors"
+                              title="Çözüldü Olarak İşaretle"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                          </PermissionGuard>
+                        )}
+
+                        {/* Delete Button - Admin only */}
+                        <PermissionGuard allowedRoles={['admin']}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteLog(log.id);
+                            }}
+                            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                            title="Sil"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </PermissionGuard>
                       </div>
                     </td>
                   </tr>

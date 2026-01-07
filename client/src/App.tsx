@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import RoleGuard from './components/auth/RoleGuard';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Machines from './pages/Machines';
@@ -8,6 +9,7 @@ import MachineDetail from './pages/MachineDetail';
 import QRScanner from './pages/QRScanner';
 import ReportFault from './pages/ReportFault';
 import Maintenance from './pages/Maintenance';
+import TeamManagement from './pages/TeamManagement';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -87,6 +89,18 @@ function App() {
                 <DashboardLayout>
                   <Profile />
                 </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['admin']}>
+                  <DashboardLayout>
+                    <TeamManagement />
+                  </DashboardLayout>
+                </RoleGuard>
               </ProtectedRoute>
             }
           />

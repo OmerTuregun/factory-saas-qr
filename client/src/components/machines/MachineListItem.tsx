@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Edit, QrCode as QrCodeIcon, Trash2, Eye } from 'lucide-react';
 import type { Machine } from '../../types';
 import StatusBadge from '../common/StatusBadge';
+import PermissionGuard from '../auth/PermissionGuard';
 
 interface MachineListItemProps {
   machine: Machine;
@@ -66,36 +67,49 @@ export default function MachineListItem({ machine, onQRClick, onEditClick, onDel
       </td>
       <td className="py-4 px-4">
         <div className="flex items-center gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQRClick();
-            }}
-            className="p-2 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-            title="QR Kodu Göster"
-          >
-            <QrCodeIcon className="h-4 w-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditClick();
-            }}
-            className="p-2 text-gray-600 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors"
-            title="Düzenle"
-          >
-            <Edit className="h-4 w-4" />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteClick();
-            }}
-            className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-            title="Sil"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          {/* QR Button - Admin & Technician only */}
+          <PermissionGuard allowedRoles={['admin', 'technician']}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQRClick();
+              }}
+              className="p-2 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+              title="QR Kodu Göster"
+            >
+              <QrCodeIcon className="h-4 w-4" />
+            </button>
+          </PermissionGuard>
+
+          {/* Edit Button - Admin only */}
+          <PermissionGuard allowedRoles={['admin']}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditClick();
+              }}
+              className="p-2 text-gray-600 hover:bg-amber-50 hover:text-amber-600 rounded-lg transition-colors"
+              title="Düzenle"
+            >
+              <Edit className="h-4 w-4" />
+            </button>
+          </PermissionGuard>
+
+          {/* Delete Button - Admin only */}
+          <PermissionGuard allowedRoles={['admin']}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClick();
+              }}
+              className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              title="Sil"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </PermissionGuard>
+
+          {/* Detail Button - Everyone */}
           <button
             onClick={() => navigate(`/machines/${machine.id}`)}
             className="p-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"

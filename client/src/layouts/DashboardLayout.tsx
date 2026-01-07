@@ -10,6 +10,8 @@ import {
   LogOut,
   ScanLine,
   Wrench,
+  Users,
+  Shield,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,11 +20,16 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Makineler', href: '/machines', icon: PackageSearch },
-  { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench },
-  { name: 'Profil ve Ayarlar', href: '/profile', icon: User },
+const baseNavigation = [
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['admin', 'technician', 'operator'] },
+  { name: 'Makineler', href: '/machines', icon: PackageSearch, roles: ['admin', 'technician'] }, // Operator görmez
+  { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench, roles: ['admin', 'technician', 'operator'] },
+  { name: 'Profil ve Ayarlar', href: '/profile', icon: User, roles: ['admin', 'technician', 'operator'] },
+];
+
+// Admin-only navigation items
+const adminNavigation = [
+  { name: 'Ekip Yönetimi', href: '/team', icon: Users, roles: ['admin'] },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -30,6 +37,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  // Build navigation based on user role
+  const navigation = [
+    ...baseNavigation.filter(item => item.roles.includes(user?.role || 'operator')),
+    ...adminNavigation.filter(item => item.roles.includes(user?.role || 'operator')),
+  ];
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName || !lastName) return 'U';
@@ -39,10 +52,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const getRoleName = (role: string) => {
     const roleMap: Record<string, string> = {
       operator: 'Operatör',
-      manager: 'Yönetici',
+      technician: 'Teknisyen',
       admin: 'Admin',
     };
     return roleMap[role] || role;
+  };
+
+  const getRoleColor = (role: string) => {
+    const colorMap: Record<string, string> = {
+      admin: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+      technician: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      operator: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    };
+    return colorMap[role] || colorMap.operator;
   };
 
   return (
@@ -98,7 +120,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* User section */}
           <div className="border-t border-gray-800 p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-3">
               {/* User Avatar */}
               <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-md">
                 <span className="text-sm font-bold text-white">
@@ -112,8 +134,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-xs text-gray-400 truncate">
-                  {getRoleName(user?.role || 'operator')}
-                  {user?.factoryName && ` • ${user.factoryName}`}
+                  {user?.factoryName}
                 </p>
               </div>
               
@@ -125,6 +146,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               >
                 <LogOut className="h-5 w-5" />
               </button>
+            </div>
+            
+            {/* Role Badge */}
+            <div className="flex items-center justify-center">
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold',
+                  getRoleColor(user?.role || 'operator')
+                )}
+              >
+                <Shield className="h-3 w-3" />
+                {getRoleName(user?.role || 'operator')}
+              </span>
             </div>
           </div>
         </div>
