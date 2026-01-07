@@ -7,9 +7,11 @@ import type { MaintenanceLog, Machine } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { formatDate, getPriorityColor } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Maintenance() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [logs, setLogs] = useState<MaintenanceLog[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,18 +26,30 @@ export default function Maintenance() {
   const [machineFilter, setMachineFilter] = useState('all');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user?.factoryId) {
+      fetchData();
+    }
+  }, [user?.factoryId]);
 
   const fetchData = async () => {
+    if (!user?.factoryId) {
+      console.warn('⚠️ No factoryId found for user');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 Fetching maintenance data for factory:', user.factoryId);
+      
       // Fetch logs and machines in parallel
       const [logsData, machinesData] = await Promise.all([
-        maintenanceService.getAllByTenant(1),
-        machineService.getAllByTenant(1),
+        maintenanceService.getAllByTenant(user.factoryId),
+        machineService.getAllByTenant(user.factoryId),
       ]);
+      
+      console.log('✅ Maintenance data fetched:', { logs: logsData.length, machines: machinesData.length });
       setLogs(logsData);
       setMachines(machinesData);
     } catch (err) {
@@ -55,7 +69,7 @@ export default function Maintenance() {
         log.machineName.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Date range filter
-      const logDate = new Date(log.reportedAt);
+      const logDate = new Date(log.createdAt);
       let matchesDate = true;
       
       if (startDate) {
@@ -129,19 +143,19 @@ export default function Maintenance() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <p className="text-base font-semibold text-gray-600 mb-2">Aktif</p>
           <p className="text-4xl font-bold text-orange-600">
-            {filteredLogs.filter((l) => l.status === 'Reported' || l.status === 'InProgress').length}
+            {filteredLogs.filter((l) => l.status === 'pending' || l.status === 'in_progress').length}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <p className="text-base font-semibold text-gray-600 mb-2">Çözüldü</p>
           <p className="text-4xl font-bold text-green-600">
-            {filteredLogs.filter((l) => l.status === 'Resolved').length}
+            {filteredLogs.filter((l) => l.status === 'resolved').length}
           </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <p className="text-base font-semibold text-gray-600 mb-2">Acil</p>
           <p className="text-4xl font-bold text-red-600">
-            {filteredLogs.filter((l) => l.priority === 'Critical').length}
+            {filteredLogs.filter((l) => l.priority === 'critical').length}
           </p>
         </div>
       </div>
@@ -203,10 +217,10 @@ export default function Maintenance() {
               className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
             >
               <option value="all">Tümü</option>
-              <option value="Reported">Bekliyor</option>
-              <option value="InProgress">İşlemde</option>
-              <option value="Resolved">Çözüldü</option>
-              <option value="Closed">Kapalı</option>
+              <option value="pending">Bekliyor</option>
+              <option value="in_progress">İşlemde</option>
+              <option value="resolved">Çözüldü</option>
+              <option value="closed">Kapalı</option>
             </select>
           </div>
 
@@ -221,10 +235,10 @@ export default function Maintenance() {
               className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
             >
               <option value="all">Tümü</option>
-              <option value="Low">Düşük</option>
-              <option value="Medium">Orta</option>
-              <option value="High">Yüksek</option>
-              <option value="Critical">Acil</option>
+              <option value="low">Düşük</option>
+              <option value="medium">Orta</option>
+              <option value="high">Yüksek</option>
+              <option value="critical">Acil</option>
             </select>
           </div>
         </div>
@@ -368,39 +382,39 @@ export default function Maintenance() {
                     <td className="py-4 px-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                          log.priority === 'Critical'
+                          log.priority === 'critical'
                             ? 'bg-red-100 text-red-700 ring-1 ring-red-200'
-                            : log.priority === 'High'
+                            : log.priority === 'high'
                             ? 'bg-orange-100 text-orange-700 ring-1 ring-orange-200'
-                            : log.priority === 'Medium'
+                            : log.priority === 'medium'
                             ? 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
                             : 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
                         }`}
                       >
-                        {log.priority === 'Critical' && '🔴 '}
-                        {log.priority === 'High' && '🟠 '}
-                        {log.priority === 'Medium' && '🟡 '}
-                        {log.priority === 'Low' && '⚪ '}
-                        {log.priority}
+                        {log.priority === 'critical' && '🔴 '}
+                        {log.priority === 'high' && '🟠 '}
+                        {log.priority === 'medium' && '🟡 '}
+                        {log.priority === 'low' && '⚪ '}
+                        {log.priority.charAt(0).toUpperCase() + log.priority.slice(1)}
                       </span>
                     </td>
                     <td className="py-4 px-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-                          log.status === 'Resolved'
+                          log.status === 'resolved'
                             ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                            : log.status === 'InProgress'
+                            : log.status === 'in_progress'
                             ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200'
-                            : log.status === 'Closed'
+                            : log.status === 'closed'
                             ? 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
                             : 'bg-amber-100 text-amber-700 ring-1 ring-amber-200'
                         }`}
                       >
-                        {log.status === 'Resolved' && '✅ '}
-                        {log.status === 'InProgress' && '⚙️ '}
-                        {log.status === 'Closed' && '✔️ '}
-                        {log.status === 'Reported' && '⏳ '}
-                        {log.status}
+                        {log.status === 'resolved' && '✅ '}
+                        {log.status === 'in_progress' && '⚙️ '}
+                        {log.status === 'closed' && '✔️ '}
+                        {log.status === 'pending' && '⏳ '}
+                        {log.status === 'pending' ? 'Bekliyor' : log.status === 'in_progress' ? 'İşlemde' : log.status === 'resolved' ? 'Çözüldü' : 'Kapalı'}
                       </span>
                     </td>
                     <td className="py-4 px-4">
@@ -412,10 +426,12 @@ export default function Maintenance() {
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-1.5 text-sm text-gray-600">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        {new Date(log.reportedAt).toLocaleDateString('tr-TR', {
+                        {new Date(log.createdAt).toLocaleDateString('tr-TR', {
                           day: '2-digit',
                           month: 'short',
                           year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}
                       </div>
                     </td>

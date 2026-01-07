@@ -19,9 +19,11 @@ import maintenanceService from '../services/maintenanceService';
 import type { Machine } from '../types';
 import type { DashboardStats } from '../types';
 import type { MaintenanceLog } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalMachines: 0,
     activeMachines: 0,
@@ -32,23 +34,53 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
+    if (!user?.factoryId) {
+      console.warn('⚠️ No factoryId found for user');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch machines for tenant ID 1 (demo tenant)
-      const machineData = await machineService.getAllByTenant(1);
+      console.log('🔄 Fetching dashboard data for factory:', user.factoryId);
 
-      // Fetch maintenance logs for stats
-      const logsData = await maintenanceService.getAllByTenant(1);
+      // Fetch machines and maintenance logs in parallel
+      const [machineData, logsData] = await Promise.all([
+        machineService.getAllByTenant(user.factoryId),
+        maintenanceService.getAllByTenant(user.factoryId),
+      ]);
+
+      console.log('✅ Dashboard data fetched:', { 
+        machines: machineData.length, 
+        logs: logsData.length 
+      });
+
+      // Aktif arızalar (pending veya in_progress)
+      const activeFaults = logsData.filter(
+        (log) => log.status === 'pending' || log.status === 'in_progress'
+      );
+
+      // Aktif arızası olan makinelerin ID'lerini topla
+      const machinesWithFaults = new Set(activeFaults.map((log) => log.machineId));
+
+      // Acil arızalar (critical priority + çözülmemiş)
+      const criticalFaults = logsData.filter(
+        (log) => log.priority === 'critical' && 
+                 log.status !== 'resolved' && 
+                 log.status !== 'closed'
+      );
 
       // Calculate stats
       const calculatedStats: DashboardStats = {
         totalMachines: machineData.length,
-        activeMachines: machineData.filter((m) => m.status === 'Active').length,
-        underMaintenance: machineData.filter((m) => m.status === 'UnderMaintenance').length,
-        criticalIssues: logsData.filter((l) => l.priority === 'Critical' && l.status !== 'Resolved').length,
+        activeMachines: machineData.length - machinesWithFaults.size, // Arızası olmayan makineler
+        underMaintenance: machinesWithFaults.size, // Aktif arızası olan makineler
+        criticalIssues: criticalFaults.length, // Acil ve çözülmemiş arızalar
       };
+
+      console.log('📊 Calculated stats:', calculatedStats);
       setStats(calculatedStats);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -59,8 +91,10 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (user?.factoryId) {
+      fetchData();
+    }
+  }, [user?.factoryId]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -85,8 +119,14 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-brand-100 text-sm mb-1">{getGreeting()},</p>
-            <h1 className="text-2xl font-bold mb-1">Admin User</h1>
-            <p className="text-brand-100 text-sm">Sistem Yöneticisi • Demo Fabrika A.Ş.</p>
+            <h1 className="text-2xl font-bold mb-1">
+              {user?.firstName && user?.lastName 
+                ? `${user.firstName} ${user.lastName}` 
+                : 'Kullanıcı'}
+            </h1>
+            <p className="text-brand-100 text-sm">
+              {user?.role === 'operator' ? 'Operatör' : 'Yönetici'} • {user?.factoryName || 'Fabrika'}
+            </p>
           </div>
           <div className="hidden sm:block">
             <div className="bg-white/20 rounded-full p-4">

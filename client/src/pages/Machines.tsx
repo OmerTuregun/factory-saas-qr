@@ -11,12 +11,14 @@ import QRCodeModal from '../components/machines/QRCodeModal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 type ViewMode = 'grid' | 'list';
 
 const machineTypes = ['Tümü', 'CNC', 'Pres', 'Kaynak', 'Paketleme', 'Diğer'];
 
 export default function Machines() {
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('Tümü');
@@ -30,13 +32,23 @@ export default function Machines() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch machines from API
+  // Fetch machines from API (filtered by user's factory)
   const fetchMachines = async () => {
     try {
       setLoading(true);
       setError(null);
-      // Using tenantId = 1 for demo purposes
-      const data = await machineService.getAllByTenant(1);
+      
+      // Use user's factory_id for data isolation
+      if (!user?.factoryId) {
+        console.warn('User factory ID not available');
+        setMachines([]);
+        return;
+      }
+      
+      console.log('🔄 Fetching machines for factory:', user.factoryId);
+      const data = await machineService.getAllByTenant(user.factoryId);
+      
+      console.log('✅ Machines fetched:', data.length);
       setMachines(data);
     } catch (err: any) {
       console.error('Failed to fetch machines:', err);
@@ -46,10 +58,12 @@ export default function Machines() {
     }
   };
 
-  // Load machines on mount
+  // Load machines on mount and when user changes
   useEffect(() => {
-    fetchMachines();
-  }, []);
+    if (user?.factoryId) {
+      fetchMachines();
+    }
+  }, [user?.factoryId]);
 
   // Filter machines
   const filteredMachines = useMemo(() => {
@@ -71,12 +85,20 @@ export default function Machines() {
 
   const handleAddMachine = async (data: any) => {
     try {
+      if (!user?.factoryId) {
+        throw new Error('Kullanıcı fabrika bilgisi bulunamadı');
+      }
+
+      console.log('🔄 Creating machine for factory:', user.factoryId);
       await machineService.create({
-        tenantId: 1,
+        factoryId: user.factoryId, // Use user's factory ID
         name: data.name,
-        description: data.description || '',
+        type: data.type || 'Diğer',
         location: data.location || '',
+        status: 'active',
       });
+      
+      console.log('✅ Machine created successfully');
       await fetchMachines();
       setIsAddModalOpen(false);
     } catch (err: any) {

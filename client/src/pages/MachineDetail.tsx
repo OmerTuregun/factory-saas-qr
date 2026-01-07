@@ -29,15 +29,17 @@ export default function MachineDetail() {
 
   useEffect(() => {
     if (id) {
-      fetchMachine(parseInt(id));
+      fetchMachine(id); // ID is UUID string, don't parse!
     }
   }, [id]);
 
-  const fetchMachine = async (machineId: number) => {
+  const fetchMachine = async (machineId: string) => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 Fetching machine with ID:', machineId);
       const data = await machineService.getById(machineId);
+      console.log('✅ Machine fetched:', data);
       setMachine(data);
     } catch (err) {
       console.error('Error fetching machine:', err);
@@ -85,12 +87,14 @@ export default function MachineDetail() {
     return (
       <ErrorMessage
         message={error || 'Makine bulunamadı.'}
-        onRetry={() => id && fetchMachine(parseInt(id))}
+        onRetry={() => id && fetchMachine(id)}
       />
     );
   }
 
-  const qrCodeValue = `MACHINE-${machine.id}-${machine.qrCode}`;
+  // QR Code içeriği: Sadece machine'in unique qr_code'u
+  // Scanner bu QR code ile database'den makineyi bulacak
+  const qrCodeValue = machine.qrCode;
 
   return (
     <div className="space-y-6">

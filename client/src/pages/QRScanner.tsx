@@ -10,30 +10,48 @@ export default function QRScanner() {
   const [manualId, setManualId] = useState('');
   const [scanning, setScanning] = useState(true);
 
-  const parseQRCode = (qrData: string): number | null => {
-    try {
-      // Format: MACHINE-{id}-{qrCode}
-      const match = qrData.match(/MACHINE-(\d+)-/);
-      if (match && match[1]) {
-        return parseInt(match[1]);
-      }
-      return null;
-    } catch (err) {
-      console.error('QR Parse Error:', err);
-      return null;
-    }
-  };
-
-  const handleScan = (result: any) => {
+  const handleScan = async (result: any) => {
     if (!scanning) return;
 
     const qrData = result?.[0]?.rawValue || result?.text;
     
     if (qrData) {
-      const machineId = parseQRCode(qrData);
+      console.log('🔍 QR Code scanned:', qrData);
+      setScanning(false);
       
-      if (machineId) {
-        setScanning(false);
+      try {
+        // Find machine by QR code in database
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/machines?qr_code=eq.${qrData}&select=id`,
+          {
+            headers: {
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Makine bulunamadı');
+        }
+
+        const machines = await response.json();
+        
+        if (!machines || machines.length === 0) {
+          setError('Bu QR kodu kayıtlı bir makineye ait değil.');
+          setTimeout(() => {
+            setError(null);
+            setScanning(true);
+          }, 3000);
+          return;
+        }
+
+        const machineId = machines[0].id;
+        console.log('✅ Machine found:', machineId);
+        
         // Başarılı tarama feedback'i
         navigator.vibrate?.(200); // Mobilde titreşim
         
@@ -41,23 +59,28 @@ export default function QRScanner() {
         setTimeout(() => {
           navigate(`/report-fault/${machineId}`);
         }, 500);
-      } else {
-        setError('Geçersiz QR Kod formatı. Lütfen makine QR kodunu okutun.');
-        setTimeout(() => setError(null), 3000);
+      } catch (err: any) {
+        console.error('QR Scan Error:', err);
+        setError('QR kod işlenirken hata oluştu. Tekrar deneyin.');
+        setTimeout(() => {
+          setError(null);
+          setScanning(true);
+        }, 3000);
       }
     }
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const id = parseInt(manualId);
     
-    if (isNaN(id) || id <= 0) {
-      setError('Lütfen geçerli bir makine ID\'si girin.');
+    if (!manualId.trim()) {
+      setError('Lütfen bir QR kod girin.');
       return;
     }
     
-    navigate(`/report-fault/${id}`);
+    // Use the QR code to find machine (same as scan)
+    console.log('🔍 Manual QR code:', manualId);
+    handleScan([{ rawValue: manualId }]);
   };
 
   return (
@@ -166,13 +189,13 @@ export default function QRScanner() {
               <form onSubmit={handleManualSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Makine ID
+                    QR Kod
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={manualId}
                     onChange={(e) => setManualId(e.target.value)}
-                    placeholder="Örn: 1"
+                    placeholder="QR kodunu girin (Örn: QR-1234567890-ABC)"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-lg"
                     autoFocus
                   />

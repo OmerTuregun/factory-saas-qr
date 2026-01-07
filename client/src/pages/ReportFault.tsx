@@ -29,14 +29,14 @@ export default function ReportFault() {
 
   useEffect(() => {
     if (machineId) {
-      fetchMachine(parseInt(machineId));
+      fetchMachine(machineId); // UUID string olarak kullan
     }
   }, [machineId]);
 
-  const fetchMachine = async (id: number) => {
+  const fetchMachine = async (id: string) => { // number yerine string
     try {
       setLoading(true);
-      const data = await machineService.getById(id);
+      const data = await machineService.getById(id); // String UUID gönder
       setMachine(data);
     } catch (err) {
       console.error('Error fetching machine:', err);
@@ -55,11 +55,17 @@ export default function ReportFault() {
     try {
       setSubmitting(true);
 
+      // Title'ı description'ın ilk 50 karakterinden oluştur
+      const title = formData.description.length > 50 
+        ? formData.description.substring(0, 50) + '...' 
+        : formData.description;
+
       await maintenanceService.report({
-        qrCode: machine.qrCode,
+        machineId: machine.id, // UUID gönder
+        title: title, // Otomatik üretilen title
         description: formData.description,
-        priority: formData.priority,
-        reportedBy: formData.reportedBy || 'Anonim',
+        priority: formData.priority.toLowerCase() as 'low' | 'medium' | 'high' | 'critical',
+        reportedBy: formData.reportedBy || undefined, // Bildiren kişi (opsiyonel)
       });
 
       setSuccess(true);

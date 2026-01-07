@@ -12,6 +12,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const getInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName || !lastName) return 'U';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const getRoleName = (role: string) => {
+    const roleMap: Record<string, string> = {
+      operator: 'Operatör',
+      manager: 'Yönetici',
+      admin: 'Admin',
+    };
+    return roleMap[role] || role;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,15 +99,28 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* User section */}
           <div className="border-t border-gray-800 p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-gray-700 flex items-center justify-center">
-                <span className="text-sm font-medium text-white">AD</span>
+              {/* User Avatar */}
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-md">
+                <span className="text-sm font-bold text-white">
+                  {getInitials(user?.firstName, user?.lastName)}
+                </span>
               </div>
+              
+              {/* User Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">Admin User</p>
-                <p className="text-xs text-gray-400 truncate">admin@example.com</p>
+                <p className="text-sm font-medium text-white truncate">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-xs text-gray-400 truncate">
+                  {getRoleName(user?.role || 'operator')}
+                  {user?.factoryName && ` • ${user.factoryName}`}
+                </p>
               </div>
+              
+              {/* Logout Button */}
               <button
-                className="text-gray-400 hover:text-white"
+                onClick={logout}
+                className="text-gray-400 hover:text-red-400 hover:bg-gray-800 p-1.5 rounded-lg transition-colors"
                 title="Çıkış Yap"
               >
                 <LogOut className="h-5 w-5" />
