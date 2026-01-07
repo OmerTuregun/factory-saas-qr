@@ -12,6 +12,9 @@ import {
   Moon,
   Bell,
   CheckCircle,
+  Shield,
+  Copy,
+  Check,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -61,6 +64,45 @@ export default function Profile() {
     const first = user?.firstName?.charAt(0) || '';
     const last = user?.lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || 'U';
+  };
+
+  // Role permissions map
+  const rolePermissions = {
+    admin: [
+      'Makine Ekleme/Silme/Düzenleme',
+      'Kullanıcı ve Ekip Yönetimi',
+      'Tüm Arızaları Yönetme',
+      'Fabrika Ayarları',
+      'QR Kod Görüntüleme',
+    ],
+    technician: [
+      'Arıza Durumlarını Güncelleme',
+      'Bakım Notu Ekleme',
+      'QR Kod Görüntüleme',
+      'Arıza Bildirme',
+    ],
+    operator: [
+      'Yeni Arıza Bildirme',
+      'Kendi Bildirimlerini Takip Etme',
+      'Dashboard Özeti Görüntüleme',
+    ],
+  };
+
+  const roleLabels = {
+    admin: 'Yönetici Yetkileri',
+    technician: 'Teknisyen Yetkileri',
+    operator: 'Operatör Yetkileri',
+  };
+
+  // Copy to clipboard
+  const [copied, setCopied] = useState(false);
+  const handleCopyCode = () => {
+    if (user?.factoryCode) {
+      navigator.clipboard.writeText(user.factoryCode);
+      setCopied(true);
+      toast.success('Kurum kodu kopyalandı!');
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   // Handle profile update
@@ -131,9 +173,10 @@ export default function Profile() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - User Summary Card */}
-        <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 sticky top-6">
+        {/* Left Column - User Summary Card and Factory Info */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* User Summary Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
             {/* Avatar */}
             <div className="flex flex-col items-center text-center mb-6">
               <div className="bg-gradient-to-br from-brand-600 to-brand-700 rounded-full w-24 h-24 flex items-center justify-center mb-4 shadow-lg">
@@ -153,27 +196,93 @@ export default function Profile() {
               </span>
               
               {/* Email */}
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Mail className="h-4 w-4" />
                 <span>{user?.email}</span>
               </div>
-              
-              {/* Factory Badge */}
-              <div className="w-full pt-4 border-t border-gray-100 dark:border-gray-700">
-                <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
-                  <Building2 className="h-4 w-4" />
-                  <span className="font-medium">Bağlı Fabrika</span>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {user?.factoryName || 'Fabrika'}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Kod: <span className="font-mono">{user?.factoryCode || 'N/A'}</span>
-                  </p>
-                </div>
+            </div>
+          </div>
+
+          {/* Factory Information Card - For All Users */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-2">
+                <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Fabrika Bilgileri</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Bağlı olduğunuz kurum bilgileri</p>
               </div>
             </div>
+
+            <div className="space-y-3">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Fabrika Adı</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {user?.factoryName || 'Belirtilmemiş'}
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Kurum Kodu</p>
+                  <button
+                    onClick={handleCopyCode}
+                    className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/30 rounded transition-colors"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3 w-3" />
+                        Kopyalandı
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3" />
+                        Kopyala
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-lg font-mono font-semibold text-gray-900 dark:text-white">
+                  {user?.factoryCode || 'N/A'}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Bu kodu yeni üyelerin kayıt olması için paylaşabilirsiniz.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Permissions Card - Role Based */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-2">
+                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {roleLabels[user?.role as keyof typeof roleLabels] || 'Yetkiler'}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Rolünüze tanımlı izinler ve yetkiler
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-4 border border-purple-100 dark:border-purple-800/30">
+              <ul className="space-y-2">
+                {(rolePermissions[user?.role as keyof typeof rolePermissions] || rolePermissions.operator).map((permission, index) => (
+                  <li key={index} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <span>{permission}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+              Yetki değişikliği için yöneticinizle iletişime geçin.
+            </p>
           </div>
         </div>
 

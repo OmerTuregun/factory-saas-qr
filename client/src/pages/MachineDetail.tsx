@@ -10,13 +10,19 @@ import {
   Building2,
   AlertCircle,
   CheckCircle,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import machineService from '../services/machineService';
 import type { Machine } from '../types';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import PermissionGuard from '../components/auth/PermissionGuard';
+import EditMachineModal from '../components/machines/EditMachineModal';
+import DeleteConfirmModal from '../components/machines/DeleteConfirmModal';
 import { formatDate } from '../lib/utils';
+import toast from 'react-hot-toast';
 
 export default function MachineDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +32,8 @@ export default function MachineDetail() {
   const [machine, setMachine] = useState<Machine | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -79,6 +87,31 @@ export default function MachineDetail() {
     window.print();
   };
 
+  const handleEditMachine = async (machineId: string, data: any) => {
+    try {
+      await machineService.update(machineId, data);
+      toast.success('Makine başarıyla güncellendi!');
+      setIsEditModalOpen(false);
+      fetchMachine(machineId);
+    } catch (err) {
+      console.error('Failed to update machine:', err);
+      toast.error('Makine güncellenirken bir hata oluştu.');
+    }
+  };
+
+  const handleDeleteMachine = async () => {
+    if (!machine) return;
+    
+    try {
+      await machineService.delete(machine.id);
+      toast.success('Makine başarıyla silindi!');
+      navigate('/machines');
+    } catch (err) {
+      console.error('Failed to delete machine:', err);
+      toast.error('Makine silinirken bir hata oluştu.');
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -98,8 +131,8 @@ export default function MachineDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-4">
+      {/* Header with Back Button and Actions */}
+      <div className="flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -107,6 +140,26 @@ export default function MachineDetail() {
           <ArrowLeft className="h-5 w-5" />
           <span className="font-medium">Geri Dön</span>
         </button>
+
+        {/* Admin Actions */}
+        <PermissionGuard allowedRoles={['admin']}>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white font-medium rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
+            >
+              <Edit className="h-5 w-5" />
+              <span className="hidden sm:inline">Düzenle</span>
+            </button>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+            >
+              <Trash2 className="h-5 w-5" />
+              <span className="hidden sm:inline">Sil</span>
+            </button>
+          </div>
+        </PermissionGuard>
       </div>
 
       {/* Maintenance Warning Banner */}
@@ -271,6 +324,22 @@ export default function MachineDetail() {
           </div>
         </div>
       </div>
+
+      {/* Edit Machine Modal */}
+      <EditMachineModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={handleEditMachine}
+        machine={machine}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteMachine}
+        machineName={machine?.name || ''}
+      />
 
       {/* Print Styles */}
       <style>{`
