@@ -12,15 +12,19 @@ import {
   CheckCircle,
   Edit,
   Trash2,
+  User,
 } from 'lucide-react';
 import machineService from '../services/machineService';
+import maintenanceService from '../services/maintenanceService';
 import type { Machine } from '../types';
+import type { MaintenanceLog } from '../types';
 import StatusBadge from '../components/common/StatusBadge';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import PermissionGuard from '../components/auth/PermissionGuard';
 import EditMachineModal from '../components/machines/EditMachineModal';
 import DeleteConfirmModal from '../components/machines/DeleteConfirmModal';
+import FaultResolutionModal from '../components/maintenance/FaultResolutionModal';
 import { formatDate } from '../lib/utils';
 import toast from 'react-hot-toast';
 
@@ -30,30 +34,66 @@ export default function MachineDetail() {
   const qrRef = useRef<HTMLDivElement>(null);
 
   const [machine, setMachine] = useState<Machine | null>(null);
+  const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
+  const [selectedMaintenanceLog, setSelectedMaintenanceLog] = useState<MaintenanceLog | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchMachine(id); // ID is UUID string, don't parse!
+      
+      // Check if there's a log query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const logId = urlParams.get('log');
+      if (logId) {
+        // Fetch the specific log and open modal
+        maintenanceService.getById(logId)
+          .then((log) => {
+            setSelectedMaintenanceLog(log);
+            setIsResolutionModalOpen(true);
+            // Remove query param from URL
+            navigate(`/machines/${id}`, { replace: true });
+          })
+          .catch((error) => {
+            console.error('Error fetching maintenance log:', error);
+          });
+      }
     }
-  }, [id]);
+  }, [id, navigate]);
 
   const fetchMachine = async (machineId: string) => {
     try {
       setLoading(true);
       setError(null);
       console.log('🔄 Fetching machine with ID:', machineId);
-      const data = await machineService.getById(machineId);
-      console.log('✅ Machine fetched:', data);
-      setMachine(data);
+      const [machineData, logsData] = await Promise.all([
+        machineService.getById(machineId),
+        maintenanceService.getAllByMachine(machineId),
+      ]);
+      console.log('✅ Machine fetched:', machineData);
+      setMachine(machineData);
+      setMaintenanceLogs(logsData);
     } catch (err) {
       console.error('Error fetching machine:', err);
       setError('Makine bilgileri yüklenirken bir hata oluştu.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenResolutionModal = (log: MaintenanceLog) => {
+    setSelectedMaintenanceLog(log);
+    setIsResolutionModalOpen(true);
+  };
+
+  const handleModalResolved = () => {
+    // Refresh maintenance logs after resolution
+    if (machine?.id) {
+      maintenanceService.getAllByMachine(machine.id).then(setMaintenanceLogs);
     }
   };
 
@@ -261,6 +301,100 @@ export default function MachineDetail() {
               </p>
             </div>
           </div>
+
+          {/* Maintenance Logs Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Arıza Geçmişi ({maintenanceLogs.length})
+            </h2>
+            {maintenanceLogs.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                Bu makine için henüz arıza kaydı bulunmuyor.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {maintenanceLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    onClick={() => handleOpenResolutionModal(log)}
+                    className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {log.title}
+                          </h3>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              log.priority === 'critical'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                : log.priority === 'high'
+                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                : log.priority === 'medium'
+                                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            }`}
+                          >
+                            {log.priority === 'critical'
+                              ? 'Acil'
+                              : log.priority === 'high'
+                              ? 'Yüksek'
+                              : log.priority === 'medium'
+                              ? 'Orta'
+                              : 'Düşük'}
+                          </span>
+                        </div>
+                        {log.description && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                            {log.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded ${
+                              log.status === 'resolved'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : log.status === 'in_progress'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                            }`}
+                          >
+                            {log.status === 'resolved'
+                              ? 'Çözüldü'
+                              : log.status === 'in_progress'
+                              ? 'İşlemde'
+                              : 'Bekliyor'}
+                          </span>
+                          <span>{formatDate(log.createdAt)}</span>
+                          {log.reportedBy && (
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {log.reportedBy}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {log.status !== 'resolved' && (
+                        <PermissionGuard allowedRoles={['admin', 'technician']}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenResolutionModal(log);
+                            }}
+                            className="flex-shrink-0 p-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                            title="Arızayı Çöz"
+                          >
+                            <CheckCircle className="h-5 w-5" />
+                          </button>
+                        </PermissionGuard>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right Column - QR Code & Actions */}
@@ -339,6 +473,17 @@ export default function MachineDetail() {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteMachine}
         machineName={machine?.name || ''}
+      />
+
+      {/* Fault Resolution Modal */}
+      <FaultResolutionModal
+        isOpen={isResolutionModalOpen}
+        onClose={() => {
+          setIsResolutionModalOpen(false);
+          setSelectedMaintenanceLog(null);
+        }}
+        maintenanceLog={selectedMaintenanceLog}
+        onResolved={handleModalResolved}
       />
 
       {/* Print Styles */}

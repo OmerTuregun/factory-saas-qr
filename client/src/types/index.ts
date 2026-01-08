@@ -81,3 +81,18 @@ export interface DashboardStats {
   underMaintenance: number;
   criticalIssues: number;
 }
+
+export type NotificationType = 'new_fault' | 'fault_resolved';
+
+export interface Notification {
+  id: string; // UUID
+  userId: string; // UUID - Mapped from user_id
+  factoryId: string; // UUID - Mapped from factory_id
+  type: NotificationType;
+  title: string;
+  message: string;
+  link?: string;
+  relatedFaultId?: string; // UUID - Mapped from related_fault_id
+  isRead: boolean; // Mapped from is_read
+  createdAt: string; // Mapped from created_at
+}

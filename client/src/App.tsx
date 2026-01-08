@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import RoleGuard from './components/auth/RoleGuard';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -13,6 +14,7 @@ import Maintenance from './pages/Maintenance';
 import TeamManagement from './pages/TeamManagement';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import EmailConfirmed from './pages/EmailConfirmed';
@@ -22,7 +24,8 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <NotificationsProvider>
+            <Routes>
           {/* Public Routes - Authentication */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -86,6 +89,16 @@ function App() {
             }
           />
           <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Notifications />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/profile"
             element={
               <ProtectedRoute>
@@ -119,7 +132,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-        </Routes>
+          </Routes>
+          </NotificationsProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

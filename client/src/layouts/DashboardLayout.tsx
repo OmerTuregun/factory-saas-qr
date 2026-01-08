@@ -13,9 +13,11 @@ import {
   Users,
   Shield,
   BarChart3,
+  Bell,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationsContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -23,8 +25,9 @@ interface DashboardLayoutProps {
 
 const baseNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['admin', 'technician', 'operator'] },
-  { name: 'Makineler', href: '/machines', icon: PackageSearch, roles: ['admin', 'technician'] }, // Operator görmez
+  { name: 'Makineler', href: '/machines', icon: PackageSearch, roles: ['admin', 'technician', 'operator'] }, // Operator görür ama sadece detay görebilir
   { name: 'Bakım Geçmişi', href: '/maintenance', icon: Wrench, roles: ['admin', 'technician', 'operator'] },
+  { name: 'Bildirimler', href: '/notifications', icon: Bell, roles: ['admin', 'technician', 'operator'], showBadge: true },
   { name: 'Raporlar', href: '/reports', icon: BarChart3, roles: ['admin', 'technician'] }, // Operator görmez
   { name: 'Profil ve Ayarlar', href: '/profile', icon: User, roles: ['admin', 'technician', 'operator'] },
 ];
@@ -39,6 +42,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   // Build navigation based on user role
   const navigation = [
@@ -102,19 +106,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <nav className="flex-1 space-y-1 px-3 py-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
+              const showBadge = item.showBadge && unreadCount > 0;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors relative',
                     isActive
                       ? 'bg-brand-600 text-white'
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   )}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.name}
+                  <span className="flex-1">{item.name}</span>
+                  {showBadge && (
+                    <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

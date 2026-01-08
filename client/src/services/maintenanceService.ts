@@ -11,6 +11,9 @@ const mapToMaintenanceLog = (row: any): MaintenanceLog => ({
   priority: row.priority || 'medium',
   reportedBy: row.reported_by,
   createdAt: row.created_at,
+  createdBy: row.created_by,
+  resolvedBy: row.resolved_by,
+  resolvedAt: row.resolved_at,
   machineName: row.machine?.name,
   machineQrCode: row.machine?.qr_code,
 });
@@ -20,6 +23,12 @@ export const maintenanceService = {
    * Report a maintenance issue
    */
   async report(data: CreateMaintenanceLogDto): Promise<MaintenanceLog> {
+    console.log('🔧 [MAINTENANCE SERVICE] report() called with data:', data);
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('👤 [MAINTENANCE SERVICE] Current user:', user?.id, user?.email);
+    
     const insertData: any = {
       machine_id: data.machineId,
       title: data.title,
@@ -28,10 +37,21 @@ export const maintenanceService = {
       status: data.status || 'pending',
     };
 
+    // created_by alanını ekle (bildirim göndermek için gerekli)
+    if (user) {
+      insertData.created_by = user.id;
+      console.log('✅ [MAINTENANCE SERVICE] Added created_by:', user.id);
+    } else {
+      console.warn('⚠️ [MAINTENANCE SERVICE] No user found! created_by will be NULL');
+    }
+
     // reported_by alanını ekle (eğer varsa)
     if (data.reportedBy) {
       insertData.reported_by = data.reportedBy;
+      console.log('✅ [MAINTENANCE SERVICE] Added reported_by:', data.reportedBy);
     }
+
+    console.log('📤 [MAINTENANCE SERVICE] Inserting maintenance log:', insertData);
 
     const { data: newLog, error } = await supabase
       .from('maintenance_logs')
@@ -42,7 +62,18 @@ export const maintenanceService = {
       `)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ [MAINTENANCE SERVICE] Error inserting maintenance log:', error);
+      throw error;
+    }
+
+    console.log('✅ [MAINTENANCE SERVICE] Maintenance log created successfully:', newLog?.id);
+    console.log('📋 [MAINTENANCE SERVICE] Created log details:', {
+      id: newLog?.id,
+      machine_id: newLog?.machine_id,
+      created_by: newLog?.created_by,
+      status: newLog?.status,
+    });
 
     return mapToMaintenanceLog(newLog);
   },
@@ -123,6 +154,55 @@ export const maintenanceService = {
       .single();
 
     if (error) throw error;
+
+    return mapToMaintenanceLog(updatedLog);
+  },
+
+  /**
+   * Resolve maintenance log (mark as resolved)
+   */
+  async resolve(id: string): Promise<MaintenanceLog> {
+    console.log('🔧 [MAINTENANCE SERVICE] resolve() called for log ID:', id);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('❌ [MAINTENANCE SERVICE] User not authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('👤 [MAINTENANCE SERVICE] Resolving user:', user.id, user.email);
+
+    const updateData: any = {
+      status: 'resolved',
+      resolved_by: user.id,
+      resolved_at: new Date().toISOString(),
+    };
+
+    console.log('📤 [MAINTENANCE SERVICE] Updating maintenance log:', updateData);
+
+    const { data: updatedLog, error } = await supabase
+      .from('maintenance_logs')
+      .update(updateData)
+      .eq('id', id)
+      .select(`
+        *,
+        machine:machines(id, name, qr_code)
+      `)
+      .single();
+
+    if (error) {
+      console.error('❌ [MAINTENANCE SERVICE] Error updating maintenance log:', error);
+      throw error;
+    }
+
+    console.log('✅ [MAINTENANCE SERVICE] Maintenance log resolved successfully:', updatedLog?.id);
+    console.log('📋 [MAINTENANCE SERVICE] Resolved log details:', {
+      id: updatedLog?.id,
+      status: updatedLog?.status,
+      resolved_by: updatedLog?.resolved_by,
+      resolved_at: updatedLog?.resolved_at,
+      created_by: updatedLog?.created_by,
+    });
 
     return mapToMaintenanceLog(updatedLog);
   },
