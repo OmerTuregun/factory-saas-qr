@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Machine, CreateMachineDto, UpdateMachineDto } from '../types';
+import auditService from './auditService';
 
 // Helper function to generate QR code
 const generateQRCode = (): string => {
@@ -116,6 +117,19 @@ export const machineService = {
 
     if (error) throw error;
 
+    // Audit log: Makine oluşturuldu
+    auditService.logAction('CREATE', 'machines', newMachine.id, {
+      new_value: {
+        name: newMachine.name,
+        type: newMachine.type,
+        location: newMachine.location,
+        status: newMachine.status,
+        qr_code: qrCode,
+      },
+    }).catch(() => {
+      // Silent fail - audit log başarısız olsa bile işlem devam eder
+    });
+
     return mapToMachine(newMachine);
   },
 
@@ -123,6 +137,13 @@ export const machineService = {
    * Update machine
    */
   async update(id: string, data: UpdateMachineDto): Promise<Machine> {
+    // Önce mevcut makineyi al (eski değerler için)
+    const { data: oldMachine } = await supabase
+      .from('machines')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.type !== undefined) updateData.type = data.type;
@@ -142,6 +163,26 @@ export const machineService = {
 
     if (error) throw error;
 
+    // Audit log: Makine güncellendi
+    if (oldMachine) {
+      auditService.logAction('UPDATE', 'machines', id, {
+        old_value: {
+          name: oldMachine.name,
+          type: oldMachine.type,
+          location: oldMachine.location,
+          status: oldMachine.status,
+        },
+        new_value: {
+          name: updatedMachine.name,
+          type: updatedMachine.type,
+          location: updatedMachine.location,
+          status: updatedMachine.status,
+        },
+      }).catch(() => {
+        // Silent fail
+      });
+    }
+
     return {
       ...mapToMachine(updatedMachine),
       maintenanceLogCount: updatedMachine.maintenance_logs?.length || 0,
@@ -152,12 +193,34 @@ export const machineService = {
    * Delete machine
    */
   async delete(id: string): Promise<void> {
+    // Önce mevcut makineyi al (silinen kayıt bilgisi için)
+    const { data: machineToDelete } = await supabase
+      .from('machines')
+      .select('*')
+      .eq('id', id)
+      .single();
+
     const { error } = await supabase
       .from('machines')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    // Audit log: Makine silindi
+    if (machineToDelete) {
+      auditService.logAction('DELETE', 'machines', id, {
+        deleted_machine: {
+          name: machineToDelete.name,
+          type: machineToDelete.type,
+          location: machineToDelete.location,
+          status: machineToDelete.status,
+          qr_code: machineToDelete.qr_code,
+        },
+      }).catch(() => {
+        // Silent fail
+      });
+    }
   },
 };
 

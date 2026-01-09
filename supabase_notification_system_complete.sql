@@ -50,13 +50,13 @@ BEGIN
     fault_title_val := COALESCE(NEW.title, LEFT(NEW.description, 50));
 
     -- Fabrikadaki admin ve technician kullanıcılarını bul
-    -- ÖNEMLİ: Arızayı oluşturan kişiyi (created_by) hariç tut
+    -- ÖNEMLİ: Arızayı oluşturan kişiye de bildirim gönder (kendisine de gitmeli)
     SELECT ARRAY_AGG(p.id)
     INTO admin_technician_users
     FROM public.profiles p
     WHERE p.factory_id = factory_id_val
-      AND p.role IN ('admin', 'technician')
-      AND (NEW.created_by IS NULL OR p.id != NEW.created_by); -- Arızayı oluşturan kişiye bildirim ATMA
+      AND p.role IN ('admin', 'technician');
+      -- Arızayı oluşturan kişiye de bildirim gönder (kaldırıldı: AND p.id != NEW.created_by koşulu)
 
     -- Her admin ve technician için bildirim oluştur
     IF admin_technician_users IS NOT NULL AND array_length(admin_technician_users, 1) > 0 THEN

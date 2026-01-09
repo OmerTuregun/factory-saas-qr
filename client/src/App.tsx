@@ -15,6 +15,7 @@ import TeamManagement from './pages/TeamManagement';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
+import AuditLogs from './pages/AuditLogs';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import EmailConfirmed from './pages/EmailConfirmed';
@@ -127,6 +128,18 @@ function App() {
                 <RoleGuard allowedRoles={['admin', 'technician']}>
                   <DashboardLayout>
                     <Reports />
+                  </DashboardLayout>
+                </RoleGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audit-logs"
+            element={
+              <ProtectedRoute>
+                <RoleGuard allowedRoles={['admin']}>
+                  <DashboardLayout>
+                    <AuditLogs />
                   </DashboardLayout>
                 </RoleGuard>
               </ProtectedRoute>

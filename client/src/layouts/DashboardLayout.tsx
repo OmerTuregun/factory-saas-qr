@@ -14,10 +14,12 @@ import {
   Shield,
   BarChart3,
   Bell,
+  FileText,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationsContext';
+import GlobalSearch from '../components/ui/GlobalSearch';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -35,10 +37,12 @@ const baseNavigation = [
 // Admin-only navigation items
 const adminNavigation = [
   { name: 'Ekip Yönetimi', href: '/team', icon: Users, roles: ['admin'] },
+  { name: 'Denetim Günlükleri', href: '/audit-logs', icon: FileText, roles: ['admin'] },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -181,20 +185,50 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
           <div className="flex h-16 items-center gap-4 px-4 sm:px-6 lg:px-8">
-            {/* Mobile menu button */}
+            {/* Mobile menu button - Hidden when search is open on mobile */}
             <button
               type="button"
-              className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              className={cn(
+                'lg:hidden text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white',
+                searchOpen && 'hidden'
+              )}
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-6 w-6" />
             </button>
 
-            {/* Breadcrumb or page title could go here */}
-            <div className="flex-1" />
+            {/* Date (Desktop only, hidden on mobile when search is active) */}
+            <span
+              className={cn(
+                'hidden lg:inline text-sm text-gray-500 dark:text-gray-400',
+                searchOpen && 'lg:hidden'
+              )}
+            >
+              {new Date().toLocaleDateString('tr-TR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </span>
 
-            {/* Header actions */}
-            <div className="flex items-center gap-3">
+            {/* Global Search - Center, full width on mobile when open */}
+            <div
+              className={cn(
+                'flex-1 flex justify-center',
+                searchOpen && 'md:flex-1'
+              )}
+            >
+              <GlobalSearch onOpenChange={setSearchOpen} />
+            </div>
+
+            {/* Header actions - Hidden when search is open on mobile */}
+            <div
+              className={cn(
+                'flex items-center gap-3',
+                searchOpen && 'hidden md:flex'
+              )}
+            >
               {/* QR Scan Button */}
               <button
                 onClick={() => navigate('/scan')}
@@ -203,15 +237,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <ScanLine className="h-5 w-5" />
                 <span className="hidden sm:inline">QR Tara</span>
               </button>
-
-              <span className="hidden lg:inline text-sm text-gray-500 dark:text-gray-400">
-                {new Date().toLocaleDateString('tr-TR', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
             </div>
           </div>
         </header>

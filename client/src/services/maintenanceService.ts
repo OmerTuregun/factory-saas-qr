@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { MaintenanceLog, CreateMaintenanceLogDto } from '../types';
+import auditService from './auditService';
 
 // Map database row to MaintenanceLog type
 const mapToMaintenanceLog = (row: any): MaintenanceLog => ({
@@ -73,6 +74,19 @@ export const maintenanceService = {
       machine_id: newLog?.machine_id,
       created_by: newLog?.created_by,
       status: newLog?.status,
+    });
+
+    // Audit log: Yeni arıza bildirildi
+    auditService.logAction('CREATE', 'maintenance_logs', newLog.id, {
+      new_value: {
+        title: newLog.title,
+        description: newLog.description,
+        priority: newLog.priority,
+        status: newLog.status,
+        machine_id: newLog.machine_id,
+      },
+    }).catch(() => {
+      // Silent fail
     });
 
     return mapToMaintenanceLog(newLog);
@@ -202,6 +216,15 @@ export const maintenanceService = {
       resolved_by: updatedLog?.resolved_by,
       resolved_at: updatedLog?.resolved_at,
       created_by: updatedLog?.created_by,
+    });
+
+    // Audit log: Arıza çözüldü
+    auditService.logAction('UPDATE', 'maintenance_logs', id, {
+      status: 'resolved',
+      resolved_by: user.id,
+      resolved_at: updatedLog.resolved_at,
+    }).catch(() => {
+      // Silent fail
     });
 
     return mapToMaintenanceLog(updatedLog);
