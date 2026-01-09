@@ -32,3 +32,50 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400;
 }
+
+/* ============================================
+   MOBILE UX IMPROVEMENTS
+   ============================================ */
+
+/* iOS Zoom Prevention - Input font-size must be >= 16px */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Prevent iOS zoom on focus */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch Target Sizes - Minimum 44x44px for mobile */
+@media (max-width: 768px) {
+  /* Icon buttons should have minimum touch target */
+  button[class*="p-1"],
+  button[class*="p-1.5"],
+  a[class*="p-1"],
+  a[class*="p-1.5"] {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px !important; /* Override small padding */
+  }
+  
+  /* Ensure all interactive elements are touch-friendly */
+  button:not([class*="px-"]):not([class*="py-"]),
+  a:not([class*="px-"]):not([class*="py-"]) {
+    min-height: 44px;
+  }
+}

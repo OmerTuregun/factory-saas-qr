@@ -198,7 +198,7 @@ export default function GlobalSearch({ className, onOpenChange }: GlobalSearchPr
               {loading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
               <button
                 onClick={() => handleOpenChange(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="p-2 md:p-1 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               >
                 <X className="h-4 w-4 text-gray-400" />
               </button>

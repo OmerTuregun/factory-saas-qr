@@ -281,15 +281,15 @@ export default function Notifications() {
         )}
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+      {/* Filter Bar - Blue Theme */}
+      <div className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-md p-4">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
           {/* Left: Status Filter (Segmented Control) */}
           <div className="flex-1 w-full md:w-auto">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 md:mb-0 md:mr-3">
+            <label className="block text-sm font-medium text-white mb-2 md:mb-0 md:mr-3">
               Durum
             </label>
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-white/20 border border-white/30 rounded-lg p-1">
               {[
                 { value: 'unread' as FilterStatus, label: 'Okunmamış' },
                 { value: 'read' as FilterStatus, label: 'Okunmuş' },
@@ -301,8 +301,8 @@ export default function Notifications() {
                   className={cn(
                     'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
                     filterStatus === option.value
-                      ? 'bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-white text-brand-600 shadow-sm'
+                      : 'text-white/80 hover:text-white hover:bg-white/10'
                   )}
                 >
                   {option.label}
@@ -313,12 +313,12 @@ export default function Notifications() {
 
           {/* Middle: Date Range Selector */}
           <div className="flex-1 w-full md:w-auto flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            <label className="text-sm font-medium text-white whitespace-nowrap">
               Tarih:
             </label>
             <div className="flex items-center gap-2 flex-1">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
+                <Calendar className="h-4 w-4 text-white/70" />
                 <input
                   type="date"
                   value={dateRange.start ? dateRange.start.toISOString().split('T')[0] : ''}
@@ -328,11 +328,11 @@ export default function Notifications() {
                       start: e.target.value ? new Date(e.target.value) : null,
                     }))
                   }
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="px-3 py-2 text-sm border border-white/30 rounded-lg bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                   placeholder="Başlangıç"
                 />
               </div>
-              <span className="text-gray-400">-</span>
+              <span className="text-white/70">-</span>
               <div className="flex items-center gap-2">
                 <input
                   type="date"
@@ -343,17 +343,17 @@ export default function Notifications() {
                       end: e.target.value ? new Date(e.target.value) : null,
                     }))
                   }
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="px-3 py-2 text-sm border border-white/30 rounded-lg bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                   placeholder="Bitiş"
                 />
               </div>
               {(dateRange.start || dateRange.end) && (
                 <button
                   onClick={clearDateRange}
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="p-2 md:p-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center hover:bg-white/20 rounded transition-colors"
                   title="Tarih filtresini temizle"
                 >
-                  <X className="h-4 w-4 text-gray-400" />
+                  <X className="h-4 w-4 text-white/80 hover:text-white" />
                 </button>
               )}
             </div>

@@ -105,7 +105,7 @@ function DetailsModal({ isOpen, onClose, details }: DetailsModalProps) {
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            className="p-2 md:p-1 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
           >
             <X className="h-5 w-5 text-gray-500" />
           </button>
@@ -266,50 +266,50 @@ export default function AuditLogs() {
           </button>
         </div>
 
-        {/* Filtreler */}
+        {/* Filtreler - Blue Theme */}
         {showFilters && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-4">
+          <div className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-md p-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* İşlem Tipi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-white mb-1">
                   İşlem Tipi
                 </label>
                 <select
                   value={filters.action}
                   onChange={(e) => handleFilterChange('action', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                 >
-                  <option value="">Tümü</option>
-                  <option value="CREATE">Oluşturuldu</option>
-                  <option value="UPDATE">Güncellendi</option>
-                  <option value="DELETE">Silindi</option>
-                  <option value="LOGIN">Giriş</option>
-                  <option value="LOGOUT">Çıkış</option>
+                  <option value="" className="text-gray-900">Tümü</option>
+                  <option value="CREATE" className="text-gray-900">Oluşturuldu</option>
+                  <option value="UPDATE" className="text-gray-900">Güncellendi</option>
+                  <option value="DELETE" className="text-gray-900">Silindi</option>
+                  <option value="LOGIN" className="text-gray-900">Giriş</option>
+                  <option value="LOGOUT" className="text-gray-900">Çıkış</option>
                 </select>
               </div>
 
               {/* Kayıt Türü */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-white mb-1">
                   Kayıt Türü
                 </label>
                 <select
                   value={filters.entity}
                   onChange={(e) => handleFilterChange('entity', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                 >
-                  <option value="">Tümü</option>
-                  <option value="machines">Makineler</option>
-                  <option value="maintenance_logs">Arızalar/Bakımlar</option>
-                  <option value="profiles">Profiller</option>
-                  <option value="notifications">Bildirimler</option>
+                  <option value="" className="text-gray-900">Tümü</option>
+                  <option value="machines" className="text-gray-900">Makineler</option>
+                  <option value="maintenance_logs" className="text-gray-900">Arızalar/Bakımlar</option>
+                  <option value="profiles" className="text-gray-900">Profiller</option>
+                  <option value="notifications" className="text-gray-900">Bildirimler</option>
                 </select>
               </div>
 
               {/* Kullanıcı ID (Basit input, daha sonra dropdown yapılabilir) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-white mb-1">
                   Kullanıcı ID
                 </label>
                 <input
@@ -317,33 +317,33 @@ export default function AuditLogs() {
                   value={filters.userId}
                   onChange={(e) => handleFilterChange('userId', e.target.value)}
                   placeholder="UUID..."
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-white/30 rounded-lg bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                 />
               </div>
 
               {/* Başlangıç Tarihi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-white mb-1">
                   Başlangıç Tarihi
                 </label>
                 <input
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                 />
               </div>
 
               {/* Bitiş Tarihi */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-white mb-1">
                   Bitiş Tarihi
                 </label>
                 <input
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-white/30 rounded-lg bg-white/20 text-white focus:ring-2 focus:ring-white/50 focus:border-white/50 focus:bg-white/30 transition-all"
                 />
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function AuditLogs() {
             {(filters.userId || filters.action || filters.entity || filters.startDate || filters.endDate) && (
               <button
                 onClick={clearFilters}
-                className="text-sm text-red-600 dark:text-red-400 hover:underline"
+                className="text-sm text-white/90 hover:text-white hover:underline font-medium"
               >
                 Filtreleri Temizle
               </button>
@@ -364,21 +364,21 @@ export default function AuditLogs() {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <thead>
+                <tr className="bg-gradient-to-r from-brand-600 to-brand-700 border-b border-brand-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     Tarih
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     Yapan Kişi
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     Kayıt Türü
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     İşlem
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">
                     Detaylar
                   </th>
                 </tr>
