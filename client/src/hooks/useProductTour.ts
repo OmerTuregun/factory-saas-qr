@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
-export type TourKey = 'fault-report' | 'qr-scan';
+export type TourKey = 'fault-report' | 'qr-scan' | 'track';
 
 interface TourStep {
   element: string;
@@ -11,6 +11,7 @@ interface TourStep {
     description: string;
     side?: 'top' | 'right' | 'bottom' | 'left';
     align?: 'start' | 'center' | 'end';
+    progressText?: string; // Manuel progress text override
   };
 }
 
@@ -38,6 +39,18 @@ const TOURS_DASHBOARD: Record<TourKey, TourStep[]> = {
       },
     },
   ],
+  'track': [
+    {
+      element: '#nav-maintenance',
+      popover: {
+        title: 'Bakım Geçmişi',
+        description: 'Bakım sayfasına gitmek için tıklayın.',
+        side: 'right',
+        align: 'center',
+        progressText: 'Adım 1 / 3', // Manuel progress text
+      },
+    },
+  ],
 };
 
 // ReportFault sayfasındaki adımlar
@@ -62,6 +75,34 @@ const TOURS_REPORT_FAULT: Record<TourKey, TourStep[]> = {
       },
     },
   ],
+  'qr-scan': [],
+};
+
+// Maintenance sayfasındaki adımlar (sidebar linki hariç, sadece sayfa içi adımlar)
+const TOURS_MAINTENANCE: Record<TourKey, TourStep[]> = {
+  'track': [
+    {
+      element: '#maintenance-table',
+      popover: {
+        title: 'Bakım Kayıtları Tablosu',
+        description: 'Tüm kayıtlarınız burada listelenir.',
+        side: 'top',
+        align: 'center',
+        progressText: 'Adım 2 / 3', // Manuel progress text
+      },
+    },
+    {
+      element: '#maintenance-filters',
+      popover: {
+        title: 'Filtreleme Seçenekleri',
+        description: 'Buradan tarih ve duruma göre filtreleme yapabilirsiniz.',
+        side: 'bottom',
+        align: 'center',
+        progressText: 'Adım 3 / 3', // Manuel progress text
+      },
+    },
+  ],
+  'fault-report': [],
   'qr-scan': [],
 };
 
@@ -102,6 +143,35 @@ const TOURS: Record<TourKey, TourStep[]> = {
       popover: {
         title: 'QR Kod Tarama',
         description: 'Makine başındayken bu butona basarak kamerayı açın ve makine üzerindeki QR kodu okutun.',
+        side: 'bottom',
+        align: 'center',
+      },
+    },
+  ],
+  'track': [
+    {
+      element: '#nav-maintenance',
+      popover: {
+        title: 'Bakım Geçmişi',
+        description: 'Bakım sayfasına gitmek için tıklayın.',
+        side: 'right',
+        align: 'center',
+      },
+    },
+    {
+      element: '#maintenance-table',
+      popover: {
+        title: 'Bakım Kayıtları Tablosu',
+        description: 'Tüm kayıtlarınız burada listelenir.',
+        side: 'top',
+        align: 'center',
+      },
+    },
+    {
+      element: '#maintenance-filters',
+      popover: {
+        title: 'Filtreleme Seçenekleri',
+        description: 'Buradan tarih ve duruma göre filtreleme yapabilirsiniz.',
         side: 'bottom',
         align: 'center',
       },
@@ -161,6 +231,10 @@ export function useProductTour() {
         // ReportFault sayfasındaysak, o sayfaya özel adımları kullan
         steps = TOURS_REPORT_FAULT[tourKey] || [];
         console.log(`📋 [TOUR] Using ReportFault steps:`, steps);
+      } else if (currentPath === '/maintenance') {
+        // Maintenance sayfasındaysak, maintenance adımlarını kullan (sidebar linki hariç)
+        steps = TOURS_MAINTENANCE[tourKey] || [];
+        console.log(`📋 [TOUR] Using Maintenance steps:`, steps);
       } else {
         // Dashboard veya diğer sayfalarda, Dashboard adımlarını kullan
         steps = TOURS_DASHBOARD[tourKey] || TOURS[tourKey] || [];
@@ -207,6 +281,7 @@ export function useProductTour() {
             description: step.popover.description,
             side: step.popover.side || 'bottom',
             align: step.popover.align || 'center',
+            ...(step.popover.progressText && { progressText: step.popover.progressText }), // Manuel progress text varsa ekle
           },
         };
       }).filter((step): step is NonNullable<typeof step> => step !== null);
@@ -272,6 +347,29 @@ export function useProductTour() {
 
       console.log(`✅ [TOUR] Final visible steps: ${finalSteps.length}`);
 
+      // Multi-page persistence: Eğer "track" turu ise ve Dashboard'da isek, 
+      // kullanıcı sidebar linkine tıkladığında localStorage'a kaydet
+      if (tourKey === 'track' && currentPath === '/') {
+        // Sidebar linkine click listener ekle
+        const maintenanceLink = document.querySelector('#nav-maintenance');
+        if (maintenanceLink) {
+          const handleLinkClick = () => {
+            localStorage.setItem('active_tour', JSON.stringify({
+              tourKey: 'track',
+              timestamp: Date.now(),
+            }));
+            console.log('💾 [TOUR] Saved tour state to localStorage');
+          };
+          
+          maintenanceLink.addEventListener('click', handleLinkClick, { once: true });
+          
+          // Tur bittiğinde listener'ı temizle
+          setTimeout(() => {
+            maintenanceLink.removeEventListener('click', handleLinkClick);
+          }, 10000); // 10 saniye sonra temizle
+        }
+      }
+
       // Turu başlat
       try {
         // Önce mevcut turu temizle (eğer varsa)
@@ -300,39 +398,6 @@ export function useProductTour() {
 
         console.log(`✅ [TOUR] Verified steps: ${verifiedSteps.length}`);
 
-        // Driver instance'ını yeniden oluştur
-        // NOT: Driver.js'in drive() metodu adımları parametre olarak alır
-        // Ancak bazı durumlarda steps'i constructor'a geçmek gerekebilir
-        const newDriver = driver({
-          animate: true,
-          allowClose: true,
-          overlayColor: '#000000',
-          overlayOpacity: 0.5,
-          showProgress: true,
-          showButtons: ['next', 'previous', 'close'],
-          nextBtnText: 'İleri',
-          prevBtnText: 'Geri',
-          doneBtnText: 'Bitir',
-          closeBtnText: 'Kapat',
-          progressText: 'Adım {{current}} / {{total}}',
-          onDestroyStarted: () => {
-            newDriver.destroy();
-          },
-          // NOT: steps'i constructor'a geçmeyi deniyoruz
-          // Eğer bu çalışmazsa, drive() metodunu kullanacağız
-        });
-
-        driverObjRef.current = newDriver;
-        console.log(`🔄 [TOUR] Driver instance recreated`);
-
-        // Kısa bir gecikme ekle (driver instance'ının tam olarak hazır olması için)
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        // Driver.js v1.0+ sürümünde drive() metodu steps dizisini parametre olarak kabul etmez
-        // Önce setSteps() ile adımları yüklemeliyiz, sonra drive() parametresiz çağrılmalı
-        console.log(`🚀 [TOUR] Setting steps and starting tour with ${verifiedSteps.length} steps`);
-        console.log(`📋 [TOUR] Steps to drive:`, JSON.stringify(verifiedSteps, null, 2));
-        
         // Son kontrol: Her adımın element'i DOM'da mı?
         const finalVerifiedSteps = verifiedSteps.map((step) => {
           const element = document.querySelector(step.element as string);
@@ -349,6 +414,50 @@ export function useProductTour() {
         }
 
         console.log(`✅ [TOUR] Final verified steps before setSteps(): ${finalVerifiedSteps.length}`);
+
+        // Driver instance'ını yeniden oluştur
+        // NOT: Driver.js'in drive() metodu adımları parametre olarak alır
+        // Ancak bazı durumlarda steps'i constructor'a geçmek gerekebilir
+        const newDriver = driver({
+          animate: true,
+          allowClose: true,
+          overlayColor: '#000000',
+          overlayOpacity: 0.5,
+          showProgress: true,
+          showButtons: ['next', 'previous', 'close'],
+          nextBtnText: 'İleri',
+          prevBtnText: 'Geri',
+          doneBtnText: 'Bitir',
+          closeBtnText: 'Kapat',
+          progressText: 'Adım {{current}} / {{total}}',
+          onHighlightStarted: (element, step, options) => {
+            // Eğer adımın popover'ında özel progressText varsa, onu kullan
+            const currentStep = finalVerifiedSteps[step.index];
+            if (currentStep?.popover?.progressText) {
+              // Progress text'i manuel olarak güncelle (DOM render'ı için kısa bir gecikme)
+              setTimeout(() => {
+                const progressElement = document.querySelector('.driver-popover-progress-text');
+                if (progressElement) {
+                  progressElement.textContent = currentStep.popover.progressText;
+                }
+              }, 10);
+            }
+          },
+          onDestroyStarted: () => {
+            newDriver.destroy();
+          },
+        });
+
+        driverObjRef.current = newDriver;
+        console.log(`🔄 [TOUR] Driver instance recreated`);
+
+        // Kısa bir gecikme ekle (driver instance'ının tam olarak hazır olması için)
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        // Driver.js v1.0+ sürümünde drive() metodu steps dizisini parametre olarak kabul etmez
+        // Önce setSteps() ile adımları yüklemeliyiz, sonra drive() parametresiz çağrılmalı
+        console.log(`🚀 [TOUR] Setting steps and starting tour with ${finalVerifiedSteps.length} steps`);
+        console.log(`📋 [TOUR] Steps to drive:`, JSON.stringify(finalVerifiedSteps, null, 2));
 
         // Driver.js v1.0+ için: Önce setSteps() ile adımları yükle
         newDriver.setSteps(finalVerifiedSteps);
@@ -368,5 +477,39 @@ export function useProductTour() {
     }, 100); // 100ms bekle - elementlerin render edilmesi için
   };
 
-  return { startTour };
+  // Resume tour from localStorage (for multi-page persistence)
+  const resumeTour = async () => {
+    try {
+      const savedTour = localStorage.getItem('active_tour');
+      if (!savedTour) return;
+
+      const tourData = JSON.parse(savedTour);
+      const { tourKey, timestamp } = tourData;
+
+      // 5 dakikadan eski kayıtları temizle
+      if (Date.now() - timestamp > 5 * 60 * 1000) {
+        localStorage.removeItem('active_tour');
+        return;
+      }
+
+      // Sadece "track" turu için resume yap
+      if (tourKey === 'track' && window.location.pathname === '/maintenance') {
+        console.log('🔄 [TOUR] Resuming tour from localStorage:', tourData);
+        
+        // localStorage'ı temizle
+        localStorage.removeItem('active_tour');
+        
+        // DOM'un yüklenmesini bekle
+        await new Promise(resolve => setTimeout(resolve, 400));
+        
+        // Turu başlat (maintenance sayfasındaki adımlarla)
+        startTour('track');
+      }
+    } catch (error) {
+      console.error('❌ [TOUR] Error resuming tour:', error);
+      localStorage.removeItem('active_tour');
+    }
+  };
+
+  return { startTour, resumeTour };
 }

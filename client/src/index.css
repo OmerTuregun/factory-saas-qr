@@ -79,3 +79,95 @@
     min-height: 44px;
   }
 }
+
+/* ============================================
+   DRIVER.JS POPOVER CUSTOM STYLES
+   ============================================ */
+
+/* Popover Container */
+.driver-popover {
+  background-color: #0284c7 !important; /* brand-600 - QR Tara butonu ile aynı mavi */
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0px 10px 25px rgba(2, 132, 199, 0.5) !important;
+  border-radius: 12px !important;
+}
+
+/* Popover Title */
+.driver-popover-title {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Popover Description */
+.driver-popover-description {
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+}
+
+/* Popover Footer Buttons */
+.driver-popover-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding-top: 12px !important;
+}
+
+/* Next/Done Buttons (Primary) */
+.driver-popover-footer button.driver-popover-next-btn,
+.driver-popover-footer button.driver-popover-close-btn {
+  background-color: #ffffff !important;
+  color: #0284c7 !important; /* brand-600 */
+  border: none !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.driver-popover-footer button.driver-popover-next-btn:hover,
+.driver-popover-footer button.driver-popover-close-btn:hover {
+  background-color: #f3f4f6 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Previous Button (Secondary) */
+.driver-popover-footer button.driver-popover-prev-btn {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 8px 16px !important;
+  transition: all 0.2s ease !important;
+}
+
+.driver-popover-footer button.driver-popover-prev-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Popover Arrow (Pointing to element) */
+.driver-popover-arrow {
+  border-color: #0284c7 !important; /* brand-600 - QR Tara butonu ile aynı mavi */
+}
+
+.driver-popover-arrow-side-top {
+  border-bottom-color: #0284c7 !important;
+}
+
+.driver-popover-arrow-side-bottom {
+  border-top-color: #0284c7 !important;
+}
+
+.driver-popover-arrow-side-left {
+  border-right-color: #0284c7 !important;
+}
+
+.driver-popover-arrow-side-right {
+  border-left-color: #0284c7 !important;
+}
+
+/* Progress Text */
+.driver-popover-progress-text {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 12px !important;
+}

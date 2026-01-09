@@ -10,11 +10,13 @@ import StatCard from '../components/common/StatCard';
 import PermissionGuard from '../components/auth/PermissionGuard';
 import { formatDate, getPriorityColor } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useProductTour } from '../hooks/useProductTour';
 import toast from 'react-hot-toast';
 
 export default function Maintenance() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { resumeTour } = useProductTour();
   const [logs, setLogs] = useState<MaintenanceLog[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,14 @@ export default function Maintenance() {
       fetchData();
     }
   }, [user?.factoryId]);
+
+  // Resume tour from localStorage (multi-page persistence)
+  useEffect(() => {
+    if (!loading && logs.length >= 0) {
+      // Sayfa yüklendiğinde ve veriler hazır olduğunda turu resume et
+      resumeTour();
+    }
+  }, [loading, logs.length, resumeTour]);
 
   const fetchData = async () => {
     if (!user?.factoryId) {
@@ -228,7 +238,7 @@ export default function Maintenance() {
       </div>
 
       {/* Filters Bar - Blue Design like Machines */}
-      <div className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm p-5">
+      <div id="maintenance-filters" className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-sm p-5">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           {/* Search */}
           <div className="md:col-span-4">
@@ -357,7 +367,7 @@ export default function Maintenance() {
       </div>
 
       {/* Maintenance Logs Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div id="maintenance-table" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Tüm Kayıtlar</h2>
         </div>
