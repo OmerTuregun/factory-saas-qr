@@ -91,6 +91,12 @@
   border: none !important;
   box-shadow: 0px 10px 25px rgba(2, 132, 199, 0.5) !important;
   border-radius: 12px !important;
+  position: fixed !important;
+  max-width: 320px !important;
+  z-index: 100000 !important; /* Çok yüksek z-index - Scanner overlay'inin üstünde */
+  pointer-events: auto !important;
+  margin: 0 !important;
+  padding: 16px !important;
 }
 
 /* Popover Title */
@@ -109,6 +115,10 @@
 .driver-popover-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
   padding-top: 12px !important;
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
 }
 
 /* Next/Done Buttons (Primary) */
@@ -121,6 +131,12 @@
   border-radius: 8px !important;
   padding: 8px 16px !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 10001 !important;
+  position: relative !important;
+  min-width: 80px !important;
+  min-height: 36px !important;
 }
 
 .driver-popover-footer button.driver-popover-next-btn:hover,
@@ -138,6 +154,12 @@
   border-radius: 8px !important;
   padding: 8px 16px !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  z-index: 10001 !important;
+  position: relative !important;
+  min-width: 80px !important;
+  min-height: 36px !important;
 }
 
 .driver-popover-footer button.driver-popover-prev-btn:hover {
@@ -170,4 +192,60 @@
 .driver-popover-progress-text {
   color: rgba(255, 255, 255, 0.8) !important;
   font-size: 12px !important;
+}
+
+/* Ensure overlay doesn't block popover buttons */
+.driver-overlay {
+  pointer-events: none !important; /* Overlay tıklamaları engellemez */
+  z-index: 99999 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.driver-popover-wrapper {
+  pointer-events: auto !important; /* Popover tıklanabilir */
+  z-index: 100000 !important; /* Çok yüksek z-index - Scanner overlay'inin üstünde */
+  position: fixed !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.driver-highlighted-element {
+  pointer-events: auto !important; /* Highlighted element tıklanabilir */
+  z-index: 99999 !important;
+}
+
+/* Hide any white space or wrapper issues */
+.driver-popover-wrapper::before,
+.driver-popover-wrapper::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Ensure popover content doesn't have extra spacing */
+.driver-popover-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* Remove any background from popover container that might cause white space */
+.driver-popover-container {
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure popover body has no extra spacing */
+.driver-popover-body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure all buttons are visible and clickable */
+.driver-popover-footer button {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }

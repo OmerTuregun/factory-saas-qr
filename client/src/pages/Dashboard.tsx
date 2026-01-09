@@ -304,7 +304,7 @@ export default function Dashboard() {
 
             {/* Fault Report Tour Card */}
             <button
-              onClick={() => startTour('fault-report')}
+              onClick={() => startTour('qr-scan')}
               className="group flex flex-col items-center justify-center bg-brand-900 rounded-xl shadow-md p-6 hover:-translate-y-1 hover:bg-brand-800 transition-all duration-200"
               title="Arıza Bildirme Turunu Başlat"
             >

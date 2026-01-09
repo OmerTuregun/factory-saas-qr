@@ -1,17 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { Camera, AlertCircle, ArrowLeft, Keyboard } from 'lucide-react';
+import { useProductTour } from '../hooks/useProductTour';
 
 export default function QRScanner() {
   const navigate = useNavigate();
+  const { resumeTour } = useProductTour();
   const [error, setError] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState(false);
   const [manualId, setManualId] = useState('');
   const [scanning, setScanning] = useState(true);
 
+  // Resume tour from localStorage (multi-page persistence)
+  useEffect(() => {
+    // Sayfa yüklendiğinde turu resume et
+    // Biraz bekle ki DOM tam yüklensin
+    const timer = setTimeout(() => {
+      console.log('🔄 [QRScanner] Attempting to resume tour...');
+      resumeTour();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [resumeTour]);
+
   const handleScan = async (result: any) => {
-    if (!scanning) return;
+    if (!scanning && !manualMode) return; // Manuel modda scanning false olabilir
 
     const qrData = result?.[0]?.rawValue || result?.text;
     
@@ -51,6 +65,24 @@ export default function QRScanner() {
 
         const machineId = machines[0].id;
         console.log('✅ Machine found:', machineId);
+        
+        // Eğer tur aktifse, localStorage'a kaydet (ReportFault sayfasında resume için)
+        const savedTour = localStorage.getItem('active_tour');
+        if (savedTour) {
+          try {
+            const tourData = JSON.parse(savedTour);
+            if (tourData.tourKey === 'qr-scan') {
+              localStorage.setItem('active_tour', JSON.stringify({
+                tourKey: 'qr-scan',
+                stepIndex: 3, // Manuel giriş tamamlandı, form sayfasına geçiyoruz
+                timestamp: Date.now(),
+              }));
+              console.log('💾 [QRScanner] Saved tour state before navigation to ReportFault');
+            }
+          } catch (e) {
+            console.error('Error saving tour state:', e);
+          }
+        }
         
         // Başarılı tarama feedback'i
         navigator.vibrate?.(200); // Mobilde titreşim
@@ -97,6 +129,7 @@ export default function QRScanner() {
           </button>
 
           <button
+            id="btn-manual-entry"
             onClick={() => setManualMode(!manualMode)}
             className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/10 rounded-lg transition-colors"
           >
@@ -132,7 +165,7 @@ export default function QRScanner() {
               </div>
 
               {/* Scanner Container */}
-              <div className="relative rounded-2xl overflow-hidden border-4 border-white/20 shadow-2xl">
+              <div id="qr-scanner-viewport" className="relative rounded-2xl overflow-hidden border-4 border-white/20 shadow-2xl" style={{ zIndex: 1 }}>
                 <Scanner
                   onScan={handleScan}
                   onError={(err) => {
@@ -156,7 +189,7 @@ export default function QRScanner() {
 
                 {/* Scanning Overlay */}
                 {scanning && (
-                  <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
                     <div className="absolute inset-0 border-2 border-brand-400/50">
                       {/* Corner markers */}
                       <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-brand-400" />

@@ -11,10 +11,12 @@ import machineService from '../services/machineService';
 import maintenanceService from '../services/maintenanceService';
 import type { Machine } from '../types';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useProductTour } from '../hooks/useProductTour';
 
 export default function ReportFault() {
   const { machineId } = useParams<{ machineId: string }>();
   const navigate = useNavigate();
+  const { resumeTour } = useProductTour();
 
   const [machine, setMachine] = useState<Machine | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,14 @@ export default function ReportFault() {
       fetchMachine(machineId); // UUID string olarak kullan
     }
   }, [machineId]);
+
+  // Resume tour from localStorage (multi-page persistence)
+  useEffect(() => {
+    // Makine yüklendikten sonra turu resume et
+    if (!loading && machine) {
+      resumeTour();
+    }
+  }, [loading, machine, resumeTour]);
 
   const fetchMachine = async (id: string) => { // number yerine string
     try {
@@ -200,7 +210,7 @@ export default function ReportFault() {
               <label className="block text-sm font-semibold text-gray-900 mb-3">
                 Öncelik Seviyesi
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div id="select-priority" className="grid grid-cols-2 gap-3">
                 {[
                   { value: 'Low', label: 'Düşük', activeColor: 'bg-blue-600', inactiveColor: 'bg-gray-50', textColor: 'text-gray-700' },
                   { value: 'Medium', label: 'Normal', activeColor: 'bg-yellow-600', inactiveColor: 'bg-gray-50', textColor: 'text-gray-700' },
@@ -253,7 +263,7 @@ export default function ReportFault() {
             {/* Submit Button */}
             <div className="pt-4">
               <button
-                id="btn-save-fault"
+                id="btn-submit-fault"
                 type="submit"
                 disabled={submitting || formData.description.length < 10}
                 className="w-full px-6 py-4 bg-brand-600 text-white font-bold text-lg rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-sm"
