@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Bell, CheckCheck, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Bell, CheckCheck, Clock, AlertCircle, CheckCircle, Filter, X, Calendar } from 'lucide-react';
 import { useNotifications } from '../contexts/NotificationsContext';
 import { formatDate } from '../lib/utils';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -10,6 +10,8 @@ import maintenanceService from '../services/maintenanceService';
 import notificationService from '../services/notificationService';
 import type { MaintenanceLog } from '../types';
 import toast from 'react-hot-toast';
+
+type FilterStatus = 'unread' | 'read' | 'all';
 
 export default function Notifications() {
   const {
@@ -22,15 +24,68 @@ export default function Notifications() {
     fetchUnreadCount,
   } = useNotifications();
 
+  // Filter states
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('unread'); // Default: unread
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({
+    start: null,
+    end: null,
+  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMaintenanceLog, setSelectedMaintenanceLog] = useState<MaintenanceLog | null>(null);
   const [maintenanceLogStatuses, setMaintenanceLogStatuses] = useState<Record<string, string>>({});
 
-  // Extract maintenance log IDs from notifications and fetch their statuses
+  // Filtered notifications based on filterStatus and dateRange
+  const filteredNotifications = useMemo(() => {
+    let filtered = [...notifications];
+
+    // Filter by status
+    if (filterStatus === 'unread') {
+      filtered = filtered.filter((n) => !n.isRead);
+    } else if (filterStatus === 'read') {
+      filtered = filtered.filter((n) => n.isRead);
+    }
+    // 'all' -> no filtering
+
+    // Filter by date range
+    if (dateRange.start || dateRange.end) {
+      filtered = filtered.filter((n) => {
+        const notificationDate = new Date(n.createdAt);
+        
+        if (dateRange.start && dateRange.end) {
+          // Both dates selected: check if notification is within range
+          const start = new Date(dateRange.start);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(dateRange.end);
+          end.setHours(23, 59, 59, 999);
+          return notificationDate >= start && notificationDate <= end;
+        } else if (dateRange.start) {
+          // Only start date: check if notification is on or after start date
+          const start = new Date(dateRange.start);
+          start.setHours(0, 0, 0, 0);
+          return notificationDate >= start;
+        } else if (dateRange.end) {
+          // Only end date: check if notification is on or before end date
+          const end = new Date(dateRange.end);
+          end.setHours(23, 59, 59, 999);
+          return notificationDate <= end;
+        }
+        
+        return true;
+      });
+    }
+
+    // Sort by date (newest first)
+    return filtered.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [notifications, filterStatus, dateRange]);
+
+  // Extract maintenance log IDs from filtered notifications and fetch their statuses
   useEffect(() => {
     const fetchLogStatuses = async () => {
       const logIds: string[] = [];
-      notifications.forEach((notification) => {
+      filteredNotifications.forEach((notification) => {
         if (notification.link) {
           const logIdMatch = notification.link.match(/[?&]log=([^&]+)/);
           if (logIdMatch) {
@@ -55,10 +110,10 @@ export default function Notifications() {
       setMaintenanceLogStatuses(statusMap);
     };
 
-    if (notifications.length > 0) {
+    if (filteredNotifications.length > 0) {
       fetchLogStatuses();
     }
-  }, [notifications]);
+  }, [filteredNotifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     // ÖNEMLİ: Bildirime tıklandığında ANINDA okundu yap (optimistic update)
@@ -191,6 +246,12 @@ export default function Notifications() {
     );
   }
 
+  const clearDateRange = () => {
+    setDateRange({ start: null, end: null });
+  };
+
+  const hasActiveFilters = filterStatus !== 'unread' || dateRange.start || dateRange.end;
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -200,9 +261,11 @@ export default function Notifications() {
             Bildirimler
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">
-            {unreadCount > 0
+            {filterStatus === 'unread' && unreadCount > 0
               ? `${unreadCount} okunmamış bildirim`
-              : 'Tüm bildirimler okundu'}
+              : filterStatus === 'unread'
+              ? 'Tüm bildirimler okundu'
+              : `${filteredNotifications.length} bildirim gösteriliyor`}
           </p>
         </div>
 
@@ -218,21 +281,107 @@ export default function Notifications() {
         )}
       </div>
 
+      {/* Filter Bar */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          {/* Left: Status Filter (Segmented Control) */}
+          <div className="flex-1 w-full md:w-auto">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 md:mb-0 md:mr-3">
+              Durum
+            </label>
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              {[
+                { value: 'unread' as FilterStatus, label: 'Okunmamış' },
+                { value: 'read' as FilterStatus, label: 'Okunmuş' },
+                { value: 'all' as FilterStatus, label: 'Tümü' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setFilterStatus(option.value)}
+                  className={cn(
+                    'flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                    filterStatus === option.value
+                      ? 'bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Middle: Date Range Selector */}
+          <div className="flex-1 w-full md:w-auto flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              Tarih:
+            </label>
+            <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <input
+                  type="date"
+                  value={dateRange.start ? dateRange.start.toISOString().split('T')[0] : ''}
+                  onChange={(e) =>
+                    setDateRange((prev) => ({
+                      ...prev,
+                      start: e.target.value ? new Date(e.target.value) : null,
+                    }))
+                  }
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="Başlangıç"
+                />
+              </div>
+              <span className="text-gray-400">-</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={dateRange.end ? dateRange.end.toISOString().split('T')[0] : ''}
+                  onChange={(e) =>
+                    setDateRange((prev) => ({
+                      ...prev,
+                      end: e.target.value ? new Date(e.target.value) : null,
+                    }))
+                  }
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="Bitiş"
+                />
+              </div>
+              {(dateRange.start || dateRange.end) && (
+                <button
+                  onClick={clearDateRange}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  title="Tarih filtresini temizle"
+                >
+                  <X className="h-4 w-4 text-gray-400" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Notifications List */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Henüz Bildirim Yok
+              {filterStatus === 'unread' && !hasActiveFilters
+                ? 'Harika! Hiç okunmamış bildiriminiz yok 🎉'
+                : 'Kayıt Bulunamadı'}
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              Yeni bildirimler burada görünecek.
+              {filterStatus === 'unread' && !hasActiveFilters
+                ? 'Tüm bildirimlerinizi okudunuz.'
+                : hasActiveFilters
+                ? 'Seçilen filtrelere uygun bildirim bulunamadı.'
+                : 'Henüz bildirim yok. Yeni bildirimler burada görünecek.'}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {notifications.map((notification) => {
+            {filteredNotifications.map((notification) => {
               // Çözülen bildirimler için özel görünüm
               const isResolvedNotification = notification.type === 'fault_resolved';
               
