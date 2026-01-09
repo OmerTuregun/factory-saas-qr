@@ -10,6 +10,8 @@ import {
   ArrowRight,
   Wrench,
   User as UserIcon,
+  Play,
+  Info,
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -20,10 +22,12 @@ import type { Machine } from '../types';
 import type { DashboardStats } from '../types';
 import type { MaintenanceLog } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { useProductTour } from '../hooks/useProductTour';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { startTour } = useProductTour();
   const [stats, setStats] = useState<DashboardStats>({
     totalMachines: 0,
     activeMachines: 0,
@@ -170,6 +174,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* QR Scan Action */}
           <button
+            id="btn-report-fault"
             onClick={() => navigate('/scan')}
             className="group relative overflow-hidden bg-gradient-to-br from-brand-600 to-brand-700 rounded-xl p-6 text-left hover:shadow-lg transition-all"
           >
@@ -283,21 +288,41 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Hızlı Yardım</h3>
           <div className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-start gap-3">
-              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
-                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
+            <div className="flex items-start justify-between gap-3 group">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">1</span>
+                </div>
+                <p>
+                  <span className="font-medium text-gray-900 dark:text-white">QR Tara:</span> Mobil cihazınızla makine QR kodunu okutun
+                </p>
               </div>
-              <p>
-                <span className="font-medium text-gray-900 dark:text-white">QR Tara:</span> Mobil cihazınızla makine QR kodunu okutun
-              </p>
+              <button
+                onClick={() => startTour('qr-scan')}
+                className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                title="QR Kod Turunu Başlat"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>Oynat</span>
+              </button>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
-                <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">2</span>
+            <div className="flex items-start justify-between gap-3 group">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs">2</span>
+                </div>
+                <p>
+                  <span className="font-medium text-gray-900 dark:text-white">Arıza Bildir:</span> Sorunu açıklayın ve öncelik seçin
+                </p>
               </div>
-              <p>
-                <span className="font-medium text-gray-900 dark:text-white">Arıza Bildir:</span> Sorunu açıklayın ve öncelik seçin
-              </p>
+              <button
+                onClick={() => startTour('fault-report')}
+                className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                title="Arıza Bildirme Turunu Başlat"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>Oynat</span>
+              </button>
             </div>
             <div className="flex items-start gap-3">
               <div className="bg-blue-50 dark:bg-blue-900/30 rounded-full p-1 mt-0.5">

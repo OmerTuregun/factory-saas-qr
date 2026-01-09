@@ -97,12 +97,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-3 border-b border-gray-800 px-6">
-            <div className="h-8 w-8 rounded-lg bg-brand-500 flex items-center justify-center">
-              <PackageSearch className="h-5 w-5 text-white" />
-            </div>
+            <img 
+              src="/icon-192.png" 
+              alt="MaintFlow Logo" 
+              className="h-8 w-8 rounded-lg"
+            />
             <div>
-              <h1 className="text-lg font-bold text-white">QR Asset</h1>
-              <p className="text-xs text-gray-400">Tracker</p>
+              <h1 className="text-lg font-bold text-white">MaintFlow</h1>
             </div>
           </div>
 
@@ -231,6 +232,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               {/* QR Scan Button */}
               <button
+                id="btn-qr-scan"
                 onClick={() => navigate('/scan')}
                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm"
               >

@@ -180,6 +180,7 @@ export default function ReportFault() {
                 Sorun Nedir? <span className="text-red-500">*</span>
               </label>
               <textarea
+                id="input-fault-description"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -252,6 +253,7 @@ export default function ReportFault() {
             {/* Submit Button */}
             <div className="pt-4">
               <button
+                id="btn-save-fault"
                 type="submit"
                 disabled={submitting || formData.description.length < 10}
                 className="w-full px-6 py-4 bg-brand-600 text-white font-bold text-lg rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-sm"

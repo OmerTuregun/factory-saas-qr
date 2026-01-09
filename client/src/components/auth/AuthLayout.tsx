@@ -1,4 +1,3 @@
-import { Zap } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface AuthLayoutProps {
@@ -17,11 +16,13 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="relative z-10 flex flex-col justify-center items-start px-16 text-white">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-brand-500 rounded-xl shadow-xl">
-              <Zap className="h-8 w-8 text-white" strokeWidth={2.5} />
-            </div>
+            <img 
+              src="/icon-512.png" 
+              alt="MaintFlow Logo" 
+              className="w-16 h-16 rounded-xl shadow-xl"
+            />
             <div>
-              <h1 className="text-3xl font-bold">QR Fabrika</h1>
+              <h1 className="text-3xl font-bold">MaintFlow</h1>
               <p className="text-sm text-slate-300">Asset & Maintenance Tracking</p>
             </div>
           </div>
@@ -54,7 +55,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
           {/* Bottom Text */}
           <div className="absolute bottom-10 left-16 text-slate-400 text-sm">
-            © 2025 QR Fabrika. Tüm hakları saklıdır.
+            © 2025 MaintFlow. Tüm hakları saklıdır.
           </div>
         </div>
 
@@ -68,10 +69,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <div className="p-2 bg-brand-500 rounded-lg">
-              <Zap className="h-6 w-6 text-white" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">QR Fabrika</h1>
+            <img 
+              src="/icon-512.png" 
+              alt="MaintFlow Logo" 
+              className="w-12 h-12 rounded-lg"
+            />
+            <h1 className="text-2xl font-bold text-gray-900">MaintFlow</h1>
           </div>
 
           {children}
