@@ -3,7 +3,7 @@ import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { supabase } from '../lib/supabase';
 
-export type TourKey = 'fault-report' | 'qr-scan' | 'track';
+export type TourKey = 'fault-report' | 'qr-scan' | 'track' | 'notifications';
 
 interface TourStep {
   element: string;
@@ -56,6 +56,19 @@ const TOURS_DASHBOARD: Record<TourKey, TourStep[]> = {
       },
     },
   ],
+  'notifications': [
+    {
+      element: '#nav-notifications',
+      popover: {
+        title: 'Bildirimler',
+        description: 'Bildirimlerinizi buradan takip edebilirsiniz. Tıklayarak bildirimler sayfasına gidelim.',
+        side: 'right',
+        align: 'center',
+        progressText: 'Adım 1 / 3',
+        doneBtnText: 'İlerle',
+      },
+    },
+  ],
 };
 
 // QR Scanner sayfasındaki adımlar
@@ -73,8 +86,32 @@ const TOURS_QR_SCANNER: Record<TourKey, TourStep[]> = {
       },
     },
   ],
-  'fault-report': [],
+  'fault-report': [  ],
   'track': [],
+  'notifications': [
+    {
+      element: '#notification-filters',
+      popover: {
+        title: 'Filtreler',
+        description: 'Okundu/Okunmadı filtrelerini buradan yönetebilirsiniz.',
+        side: 'bottom',
+        align: 'center',
+        progressText: 'Adım 2 / 3',
+        nextBtnText: 'İlerle',
+      },
+    },
+    {
+      element: '#notification-list',
+      popover: {
+        title: 'Bildirim Listesi',
+        description: 'Oluşturulan arızaları burada bildirim olarak alırsınız. Bir mesaja tıkladığınızda, yani detayına eriştiğinizde okundu olarak işaretlenir.',
+        side: 'top',
+        align: 'center',
+        progressText: 'Adım 3 / 3',
+        doneBtnText: 'Bitir',
+      },
+    },
+  ],
 };
 
 // ReportFault sayfasındaki adımlar
@@ -100,6 +137,7 @@ const TOURS_REPORT_FAULT: Record<TourKey, TourStep[]> = {
     },
   ],
   'track': [],
+  'notifications': [],
   'qr-scan': [
     {
       element: '#input-fault-description',
@@ -163,6 +201,30 @@ const TOURS_MAINTENANCE: Record<TourKey, TourStep[]> = {
   ],
   'fault-report': [],
   'qr-scan': [],
+  'notifications': [
+    {
+      element: '#notification-filters',
+      popover: {
+        title: 'Filtreler',
+        description: 'Okundu/Okunmadı filtrelerini buradan yönetebilirsiniz.',
+        side: 'bottom',
+        align: 'center',
+        progressText: 'Adım 2 / 3',
+        nextBtnText: 'İlerle',
+      },
+    },
+    {
+      element: '#notification-list',
+      popover: {
+        title: 'Bildirim Listesi',
+        description: 'Oluşturulan arızaları burada bildirim olarak alırsınız. Bir mesaja tıkladığınızda, yani detayına eriştiğinizde okundu olarak işaretlenir.',
+        side: 'top',
+        align: 'center',
+        progressText: 'Adım 3 / 3',
+        doneBtnText: 'Bitir',
+      },
+    },
+  ],
 };
 
 // Tüm turlar (fallback)
@@ -236,6 +298,7 @@ const TOURS: Record<TourKey, TourStep[]> = {
       },
     },
   ],
+  'notifications': [],
 };
 
 export function useProductTour() {
@@ -297,6 +360,10 @@ export function useProductTour() {
         // Maintenance sayfasındaysak, maintenance adımlarını kullan (sidebar linki hariç)
         steps = TOURS_MAINTENANCE[tourKey] || [];
         console.log(`📋 [TOUR] Using Maintenance steps:`, steps);
+      } else if (currentPath === '/notifications') {
+        // Notifications sayfasındaysak, notifications adımlarını kullan
+        steps = TOURS_MAINTENANCE[tourKey] || [];
+        console.log(`📋 [TOUR] Using Notifications steps:`, steps);
       } else {
         // Dashboard veya diğer sayfalarda, Dashboard adımlarını kullan
         steps = TOURS_DASHBOARD[tourKey] || TOURS[tourKey] || [];
@@ -431,6 +498,64 @@ export function useProductTour() {
           setTimeout(() => {
             maintenanceLink.removeEventListener('click', handleLinkClick);
           }, 10000); // 10 saniye sonra temizle
+        }
+      }
+
+      // Multi-page persistence: Eğer "notifications" turu ise ve Dashboard'da isek,
+      // Bildirimler sidebar linkine tıklandığında localStorage'a kaydet
+      // Bu listener'ı tur başlamadan ÖNCE ekle ki kullanıcı direkt linke tıklayabilir
+      if (tourKey === 'notifications' && currentPath === '/') {
+        const notificationsLink = document.querySelector('#nav-notifications');
+        if (notificationsLink) {
+          const handleNotificationsLinkClick = () => {
+            // Tur başladıysa ve hala aktifse kaydet
+            const savedTour = localStorage.getItem('active_tour');
+            if (!savedTour || JSON.parse(savedTour).tourKey === 'notifications') {
+              localStorage.setItem('active_tour', JSON.stringify({
+                tourKey: 'notifications',
+                stepIndex: 1, // İlk adımı tamamladık
+                timestamp: Date.now(),
+              }));
+              console.log('💾 [TOUR] Saved notifications tour state to localStorage (link click)');
+            }
+          };
+          
+          // Listener'ı ekle (once: false, çünkü tur başlamadan önce de çalışabilir)
+          notificationsLink.addEventListener('click', handleNotificationsLinkClick);
+          
+          // 30 saniye sonra listener'ı temizle
+          setTimeout(() => {
+            notificationsLink.removeEventListener('click', handleNotificationsLinkClick);
+          }, 30000);
+        }
+      }
+
+      // Multi-page persistence: Eğer "notifications" turu ise ve Dashboard'da isek,
+      // Bildirimler sidebar linkine tıklandığında localStorage'a kaydet
+      // Bu listener'ı tur başlamadan ÖNCE ekle ki kullanıcı direkt linke tıklayabilir
+      if (tourKey === 'notifications' && currentPath === '/') {
+        const notificationsLink = document.querySelector('#nav-notifications');
+        if (notificationsLink) {
+          const handleNotificationsLinkClick = () => {
+            // Tur başladıysa ve hala aktifse kaydet
+            const savedTour = localStorage.getItem('active_tour');
+            if (!savedTour || JSON.parse(savedTour).tourKey === 'notifications') {
+              localStorage.setItem('active_tour', JSON.stringify({
+                tourKey: 'notifications',
+                stepIndex: 1, // İlk adımı tamamladık
+                timestamp: Date.now(),
+              }));
+              console.log('💾 [TOUR] Saved notifications tour state to localStorage (link click)');
+            }
+          };
+          
+          // Listener'ı ekle (once: false, çünkü tur başlamadan önce de çalışabilir)
+          notificationsLink.addEventListener('click', handleNotificationsLinkClick);
+          
+          // 30 saniye sonra listener'ı temizle
+          setTimeout(() => {
+            notificationsLink.removeEventListener('click', handleNotificationsLinkClick);
+          }, 30000);
         }
       }
 
@@ -577,6 +702,34 @@ export function useProductTour() {
               currentPath: window.location.pathname
             });
             
+            // Notifications turu için özel aksiyonlar
+            if (tourKey === 'notifications') {
+              const currentPath = window.location.pathname;
+              
+              // Adım 1: Dashboard'daki Bildirimler sidebar linkine tıkla
+              if (currentPath === '/' && activeIndex === 0) {
+                const currentStep = finalVerifiedSteps[0];
+                if (currentStep?.element === '#nav-notifications') {
+                  const notificationsLink = document.querySelector('#nav-notifications') as HTMLElement;
+                  if (notificationsLink) {
+                    console.log('🔘 [TOUR] Clicking notifications link from Dashboard');
+                    // localStorage'a kaydet
+                    localStorage.setItem('active_tour', JSON.stringify({
+                      tourKey: 'notifications',
+                      stepIndex: 1,
+                      timestamp: Date.now(),
+                    }));
+                    // Linke tıkla (driver.js'in normal akışını durdur)
+                    setTimeout(() => {
+                      driverInstance.destroy(); // Turu durdur
+                      notificationsLink.click(); // Linke tıkla
+                    }, 50);
+                    return false; // Driver.js'in normal akışını durdur
+                  }
+                }
+              }
+            }
+            
             // QR-scan turu için özel aksiyonlar
             if (tourKey === 'qr-scan') {
               const currentPath = window.location.pathname;
@@ -670,14 +823,34 @@ export function useProductTour() {
               }
             }
             
-            // Son adım kontrolü: Eğer son adımdaysak ve qr-scan turuysa Dashboard'a yönlendir
+            // Son adım kontrolü: Eğer son adımdaysak Dashboard'a yönlendir
+            const totalSteps = finalVerifiedSteps.length;
+            const currentPath = window.location.pathname;
+            
             if (tourKey === 'qr-scan') {
-              const totalSteps = finalVerifiedSteps.length;
-              const currentPath = window.location.pathname;
-              
               // ReportFault sayfasındaysak ve son adımdaysak
               if (currentPath.startsWith('/report-fault/') && activeIndex !== undefined && activeIndex >= totalSteps - 1) {
                 console.log('🔘 [TOUR] Last step reached on ReportFault page, redirecting to Dashboard');
+                console.log('🔘 [TOUR] Active index:', activeIndex, 'Total steps:', totalSteps);
+                
+                // localStorage'ı temizle
+                localStorage.removeItem('active_tour');
+                
+                // Turu durdur
+                driverInstance.destroy();
+                
+                // Dashboard'a yönlendir
+                setTimeout(() => {
+                  console.log('🔘 [TOUR] Redirecting to Dashboard now');
+                  window.location.href = '/';
+                }, 300);
+                
+                return false; // Driver.js'in normal akışını durdur
+              }
+            } else if (tourKey === 'notifications') {
+              // Notifications sayfasındaysak ve son adımdaysak
+              if (currentPath === '/notifications' && activeIndex !== undefined && activeIndex >= totalSteps - 1) {
+                console.log('🔘 [TOUR] Last step reached on Notifications page, redirecting to Dashboard');
                 console.log('🔘 [TOUR] Active index:', activeIndex, 'Total steps:', totalSteps);
                 
                 // localStorage'ı temizle
@@ -730,12 +903,12 @@ export function useProductTour() {
           },
           onDestroyStarted: () => {
             console.log('🔘 [TOUR] Tour destroyed - checking if should redirect to Dashboard');
-            // Tur bitince Dashboard'a yönlendir (sadece qr-scan turu için)
+            // Tur bitince Dashboard'a yönlendir (qr-scan ve notifications turları için)
             const savedTour = localStorage.getItem('active_tour');
             if (savedTour) {
               try {
                 const tourData = JSON.parse(savedTour);
-                if (tourData.tourKey === 'qr-scan') {
+                if (tourData.tourKey === 'qr-scan' || tourData.tourKey === 'notifications') {
                   // Tur bitmiş, localStorage'ı temizle
                   localStorage.removeItem('active_tour');
                   
@@ -756,12 +929,12 @@ export function useProductTour() {
           },
           onCloseClick: () => {
             console.log('🔘 [TOUR] Tour closed by user - checking if should redirect to Dashboard');
-            // Tur kapatıldığında Dashboard'a yönlendir (sadece qr-scan turu için)
+            // Tur kapatıldığında Dashboard'a yönlendir (qr-scan ve notifications turları için)
             const savedTour = localStorage.getItem('active_tour');
             if (savedTour) {
               try {
                 const tourData = JSON.parse(savedTour);
-                if (tourData.tourKey === 'qr-scan') {
+                if (tourData.tourKey === 'qr-scan' || tourData.tourKey === 'notifications') {
                   // Tur bitmiş, localStorage'ı temizle
                   localStorage.removeItem('active_tour');
                   
@@ -870,6 +1043,23 @@ export function useProductTour() {
           startTour('qr-scan');
         } else {
           console.log('🔄 [TOUR] qr-scan tour found but current path does not match:', currentPath);
+        }
+      }
+      // "notifications" turu için resume
+      else if (tourKey === 'notifications') {
+        if (currentPath === '/notifications') {
+          console.log('🔄 [TOUR] Resuming notifications tour on Notifications page:', tourData);
+          
+          // localStorage'ı temizle
+          localStorage.removeItem('active_tour');
+          
+          // DOM'un yüklenmesini bekle
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Turu başlat (Notifications sayfasındaki adımlarla)
+          startTour('notifications');
+        } else {
+          console.log('🔄 [TOUR] notifications tour found but current path does not match:', currentPath);
         }
       } else {
         console.log('🔄 [TOUR] Tour key does not match or path not supported:', { tourKey, currentPath });

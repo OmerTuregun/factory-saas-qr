@@ -12,6 +12,7 @@ import {
   User as UserIcon,
   Play,
   Info,
+  Bell,
 } from 'lucide-react';
 import StatCard from '../components/common/StatCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -288,20 +289,6 @@ export default function Dashboard() {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Hızlı Yardım</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* QR Scan Tour Card */}
-            <button
-              onClick={() => startTour('qr-scan')}
-              className="group flex flex-col items-center justify-center bg-brand-900 rounded-xl shadow-md p-6 hover:-translate-y-1 hover:bg-brand-800 transition-all duration-200"
-              title="QR Kod Turunu Başlat"
-            >
-              <ScanLine className="h-12 w-12 text-white mb-3" />
-              <h4 className="font-bold text-white text-lg mt-3 mb-2">QR Kod Tara</h4>
-              <div className="flex items-center gap-1.5 text-sm text-brand-300">
-                <Play className="h-4 w-4" />
-                <span>Tur'u Başlat</span>
-              </div>
-            </button>
-
             {/* Fault Report Tour Card */}
             <button
               onClick={() => startTour('qr-scan')}
@@ -310,6 +297,20 @@ export default function Dashboard() {
             >
               <AlertCircle className="h-12 w-12 text-white mb-3" />
               <h4 className="font-bold text-white text-lg mt-3 mb-2">Arıza Bildir</h4>
+              <div className="flex items-center gap-1.5 text-sm text-brand-300">
+                <Play className="h-4 w-4" />
+                <span>Tur'u Başlat</span>
+              </div>
+            </button>
+
+            {/* Notifications Tour Card */}
+            <button
+              onClick={() => startTour('notifications')}
+              className="group flex flex-col items-center justify-center bg-brand-900 rounded-xl shadow-md p-6 hover:-translate-y-1 hover:bg-brand-800 transition-all duration-200"
+              title="Bildirimleri Görme Turunu Başlat"
+            >
+              <Bell className="h-12 w-12 text-white mb-3" />
+              <h4 className="font-bold text-white text-lg mt-3 mb-2">Bildirimleri Gör</h4>
               <div className="flex items-center gap-1.5 text-sm text-brand-300">
                 <Play className="h-4 w-4" />
                 <span>Tur'u Başlat</span>

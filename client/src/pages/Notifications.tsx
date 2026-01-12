@@ -10,6 +10,7 @@ import maintenanceService from '../services/maintenanceService';
 import notificationService from '../services/notificationService';
 import type { MaintenanceLog } from '../types';
 import toast from 'react-hot-toast';
+import { useProductTour } from '../hooks/useProductTour';
 
 type FilterStatus = 'unread' | 'read' | 'all';
 
@@ -23,6 +24,7 @@ export default function Notifications() {
     fetchNotifications,
     fetchUnreadCount,
   } = useNotifications();
+  const { resumeTour } = useProductTour();
 
   // Filter states
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('unread'); // Default: unread
@@ -34,6 +36,19 @@ export default function Notifications() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMaintenanceLog, setSelectedMaintenanceLog] = useState<MaintenanceLog | null>(null);
   const [maintenanceLogStatuses, setMaintenanceLogStatuses] = useState<Record<string, string>>({});
+
+  // Resume tour from localStorage (multi-page persistence)
+  useEffect(() => {
+    // Sayfa yüklendiğinde turu resume et
+    if (!loading) {
+      const timer = setTimeout(() => {
+        console.log('🔄 [Notifications] Attempting to resume tour...');
+        resumeTour();
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [loading, resumeTour]);
 
   // Filtered notifications based on filterStatus and dateRange
   const filteredNotifications = useMemo(() => {
@@ -282,7 +297,7 @@ export default function Notifications() {
       </div>
 
       {/* Filter Bar - Blue Theme */}
-      <div className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-md p-4">
+      <div id="notification-filters" className="bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl shadow-md p-4">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
           {/* Left: Status Filter (Segmented Control) */}
           <div className="flex-1 w-full md:w-auto">
@@ -362,7 +377,7 @@ export default function Notifications() {
       </div>
 
       {/* Notifications List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div id="notification-list" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         {filteredNotifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
