@@ -99,6 +99,7 @@ const TOURS_REPORT_FAULT: Record<TourKey, TourStep[]> = {
       },
     },
   ],
+  'track': [],
   'qr-scan': [
     {
       element: '#input-fault-description',
@@ -252,7 +253,6 @@ export function useProductTour() {
       nextBtnText: 'İleri',
       prevBtnText: 'Geri',
       doneBtnText: 'Bitir',
-      closeBtnText: 'Kapat',
       progressText: 'Adım {{current}} / {{total}}',
       onDestroyStarted: () => {
         // Tur iptal edildiğinde
@@ -440,7 +440,7 @@ export function useProductTour() {
       if (tourKey === 'qr-scan' && currentPath === '/') {
         const qrScanButton = document.querySelector('#btn-qr-scan');
         if (qrScanButton) {
-          const handleQrButtonClick = (e: Event) => {
+          const handleQrButtonClick = () => {
             // Tur başladıysa ve hala aktifse kaydet
             const savedTour = localStorage.getItem('active_tour');
             if (!savedTour || JSON.parse(savedTour).tourKey === 'qr-scan') {
@@ -491,7 +491,7 @@ export function useProductTour() {
         if (driverObjRef.current) {
           try {
             driverObjRef.current.destroy();
-          } catch (e) {
+          } catch {
             // Ignore destroy errors
           }
         }
@@ -543,75 +543,84 @@ export function useProductTour() {
           nextBtnText: 'İleri',
           prevBtnText: 'Geri',
           doneBtnText: 'Bitir',
-          closeBtnText: 'Kapat',
           progressText: 'Adım {{current}} / {{total}}',
-          onHighlightStarted: (element, step, options) => {
+          onHighlightStarted: () => {
             // Eğer adımın popover'ında özel progressText varsa, onu kullan
-            const currentStep = finalVerifiedSteps[step.index];
-            if (currentStep?.popover?.progressText) {
-              // Progress text'i manuel olarak güncelle (DOM render'ı için kısa bir gecikme)
-              setTimeout(() => {
-                const progressElement = document.querySelector('.driver-popover-progress-text');
-                if (progressElement) {
-                  progressElement.textContent = currentStep.popover.progressText;
+            const driverInstance = driverObjRef.current;
+            if (driverInstance) {
+              const activeIndex = driverInstance.getActiveIndex();
+              if (activeIndex !== undefined && activeIndex >= 0 && activeIndex < finalVerifiedSteps.length) {
+                const currentStep = finalVerifiedSteps[activeIndex];
+                if (currentStep?.popover?.progressText) {
+                  // Progress text'i manuel olarak güncelle (DOM render'ı için kısa bir gecikme)
+                  setTimeout(() => {
+                  const progressElement = document.querySelector('.driver-popover-progress-text');
+                  if (progressElement && currentStep.popover.progressText) {
+                    progressElement.textContent = currentStep.popover.progressText;
+                  }
+                  }, 10);
                 }
-              }, 10);
+              }
             }
           },
-          onNextClick: (element, step, options) => {
+          onNextClick: () => {
+            // Mevcut adım indeksini driver'dan al (step.index güvenilir değil)
+            const driverInstance = driverObjRef.current;
+            if (!driverInstance) {
+              console.warn('⚠️ [TOUR] Driver instance not found in onNextClick');
+              return true;
+            }
+            
+            const activeIndex = driverInstance.getActiveIndex();
             console.log('🔘 [TOUR] onNextClick called:', { 
-              stepIndex: step.index, 
-              currentPath: window.location.pathname,
-              element: element,
-              step: step
+              activeIndex: activeIndex,
+              currentPath: window.location.pathname
             });
             
             // QR-scan turu için özel aksiyonlar
             if (tourKey === 'qr-scan') {
-              const currentStep = finalVerifiedSteps[step.index];
               const currentPath = window.location.pathname;
-
+              
               // Adım 1: Dashboard'daki QR Tara butonuna tıkla
-              if (currentPath === '/' && currentStep?.element === '#btn-qr-scan') {
-                const qrButton = document.querySelector('#btn-qr-scan') as HTMLElement;
-                if (qrButton) {
-                  console.log('🔘 [TOUR] Clicking QR button from Dashboard');
-                  // localStorage'a kaydet
-                  localStorage.setItem('active_tour', JSON.stringify({
-                    tourKey: 'qr-scan',
-                    stepIndex: 1,
-                    timestamp: Date.now(),
-                  }));
-                  // Butona tıkla (driver.js'in normal akışını durdur)
-                  setTimeout(() => {
-                    newDriver.destroy(); // Turu durdur
-                    qrButton.click(); // Butona tıkla
-                  }, 50);
-                  return false; // Driver.js'in normal akışını durdur
+              if (currentPath === '/' && activeIndex === 0) {
+                const currentStep = finalVerifiedSteps[0];
+                if (currentStep?.element === '#btn-qr-scan') {
+                  const qrButton = document.querySelector('#btn-qr-scan') as HTMLElement;
+                  if (qrButton) {
+                    console.log('🔘 [TOUR] Clicking QR button from Dashboard');
+                    // localStorage'a kaydet
+                    localStorage.setItem('active_tour', JSON.stringify({
+                      tourKey: 'qr-scan',
+                      stepIndex: 1,
+                      timestamp: Date.now(),
+                    }));
+                    // Butona tıkla (driver.js'in normal akışını durdur)
+                    setTimeout(() => {
+                      driverInstance.destroy(); // Turu durdur
+                      qrButton.click(); // Butona tıkla
+                    }, 50);
+                    return false; // Driver.js'in normal akışını durdur
+                  }
                 }
               }
-              // Adım 2: QR Scanner sayfasındaki kamera viewport - otomatik simülasyon
-              else if (currentPath === '/scan' && currentStep?.element === '#qr-scanner-viewport') {
-                console.log('🔘 [TOUR] On QR Scanner viewport step - simulating QR scan');
-                
-                // Turu durdur
-                newDriver.destroy();
-                
-                // Manuel Giriş butonuna tıkla
-                const manualButton = document.querySelector('#btn-manual-entry') as HTMLElement;
-                if (manualButton) {
-                  manualButton.click();
+              // Adım 2: QR Scanner sayfasındaki kamera viewport - direkt arıza formuna geçiş
+              else if (currentPath === '/scan' && activeIndex === 0) {
+                const currentStep = finalVerifiedSteps[0];
+                if (currentStep?.element === '#qr-scanner-viewport') {
+                  console.log('🔘 [TOUR] On QR Scanner viewport step - skipping manual entry, going directly to fault form');
                   
-                  // Manuel mod açıldıktan sonra bir test QR kodu bul ve gir
-                  setTimeout(async () => {
-                    try {
-                      // Kullanıcının factory ID'sini al (localStorage'dan veya context'ten)
-                      const { data: { session } } = await supabase.auth.getSession();
-                      if (!session?.user) {
-                        console.error('❌ [TOUR] No user session found');
-                        return;
-                      }
+                  // Turu durdur
+                  driverInstance.destroy();
+                  
+                  // Direkt olarak bir makine bul ve arıza formuna yönlendir
+                  // Async işlemi başlat ama return false ile driver'ı durdur
+                  supabase.auth.getSession().then(async ({ data: { session } }) => {
+                    if (!session?.user) {
+                      console.error('❌ [TOUR] No user session found');
+                      return;
+                    }
 
+                    try {
                       // Kullanıcı profilini al
                       const { data: profile } = await supabase
                         .from('profiles')
@@ -627,7 +636,7 @@ export function useProductTour() {
                       // İlk makineyi bul
                       const { data: machines, error } = await supabase
                         .from('machines')
-                        .select('id, qr_code')
+                        .select('id')
                         .eq('factory_id', profile.factory_id)
                         .limit(1)
                         .single();
@@ -637,42 +646,86 @@ export function useProductTour() {
                         return;
                       }
 
-                      console.log('✅ [TOUR] Found test machine:', machines);
+                      console.log('✅ [TOUR] Found test machine for tour:', machines);
 
-                      // Manuel giriş input'una QR kodunu gir
-                      const manualInput = document.querySelector('input[type="text"][placeholder*="QR kodunu"]') as HTMLInputElement;
-                      if (manualInput) {
-                        manualInput.value = machines.qr_code;
-                        manualInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        manualInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        
-                        // Formu submit et
-                        setTimeout(() => {
-                          const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-                          if (submitButton) {
-                            console.log('🔘 [TOUR] Submitting manual form with QR code:', machines.qr_code);
-                            submitButton.click();
-                            
-                            // localStorage'a kaydet (ReportFault sayfasında resume için)
-                            localStorage.setItem('active_tour', JSON.stringify({
-                              tourKey: 'qr-scan',
-                              stepIndex: 2, // QR scan tamamlandı, form sayfasına geçiyoruz
-                              timestamp: Date.now(),
-                            }));
-                          }
-                        }, 200);
-                      }
+                      // localStorage'a kaydet (ReportFault sayfasında resume için)
+                      localStorage.setItem('active_tour', JSON.stringify({
+                        tourKey: 'qr-scan',
+                        stepIndex: 2, // QR scan tamamlandı, form sayfasına geçiyoruz
+                        timestamp: Date.now(),
+                      }));
+
+                      // Direkt olarak arıza formuna yönlendir (manuel QR girişi adımını atla)
+                      console.log('🔘 [TOUR] Navigating directly to fault form:', `/report-fault/${machines.id}`);
+                      window.location.href = `/report-fault/${machines.id}`;
                     } catch (error) {
-                      console.error('❌ [TOUR] Error simulating QR scan:', error);
+                      console.error('❌ [TOUR] Error navigating to fault form:', error);
                     }
-                  }, 400); // Manuel modun açılması için bekle
+                  }).catch((error) => {
+                    console.error('❌ [TOUR] Error getting session:', error);
+                  });
+                  
+                  return false; // Driver.js'in normal akışını durdur
                 }
+              }
+            }
+            
+            // Son adım kontrolü: Eğer son adımdaysak ve qr-scan turuysa Dashboard'a yönlendir
+            if (tourKey === 'qr-scan') {
+              const totalSteps = finalVerifiedSteps.length;
+              const currentPath = window.location.pathname;
+              
+              // ReportFault sayfasındaysak ve son adımdaysak
+              if (currentPath.startsWith('/report-fault/') && activeIndex !== undefined && activeIndex >= totalSteps - 1) {
+                console.log('🔘 [TOUR] Last step reached on ReportFault page, redirecting to Dashboard');
+                console.log('🔘 [TOUR] Active index:', activeIndex, 'Total steps:', totalSteps);
+                
+                // localStorage'ı temizle
+                localStorage.removeItem('active_tour');
+                
+                // Turu durdur
+                driverInstance.destroy();
+                
+                // Dashboard'a yönlendir
+                setTimeout(() => {
+                  console.log('🔘 [TOUR] Redirecting to Dashboard now');
+                  window.location.href = '/';
+                }, 300);
                 
                 return false; // Driver.js'in normal akışını durdur
               }
             }
-            // Normal akışı devam ettir
-            console.log('🔘 [TOUR] Continuing normal flow');
+            
+            // Normal akış: Bir sonraki adıma geç
+            console.log('🔘 [TOUR] Continuing normal flow - moving to next step');
+            // Custom logic yoksa, driver'ın otomatik ilerlemesini kullan
+            // Ancak eğer otomatik ilerleme çalışmıyorsa manuel olarak ilerlet
+            setTimeout(() => {
+              const currentIndex = driverInstance.getActiveIndex();
+              if (currentIndex === activeIndex) {
+                // Eğer hala aynı adımdaysak, manuel olarak ilerlet
+                console.log('🔘 [TOUR] Auto-advance failed, manually moving to next step');
+                driverInstance.moveNext();
+              }
+            }, 100);
+            return true; // Driver.js'in normal akışını devam ettir
+          },
+          onPrevClick: () => {
+            // Mevcut adım indeksini driver'dan al
+            const driverInstance = driverObjRef.current;
+            if (!driverInstance) {
+              console.warn('⚠️ [TOUR] Driver instance not found in onPrevClick');
+              return true;
+            }
+            
+            const activeIndex = driverInstance.getActiveIndex();
+            console.log('🔘 [TOUR] onPrevClick called:', { 
+              activeIndex: activeIndex,
+              currentPath: window.location.pathname
+            });
+            
+            // Önceki adıma geç
+            driverInstance.movePrevious();
             return true;
           },
           onDestroyStarted: () => {
@@ -686,19 +739,20 @@ export function useProductTour() {
                   // Tur bitmiş, localStorage'ı temizle
                   localStorage.removeItem('active_tour');
                   
-                  // Eğer ReportFault sayfasındaysak Dashboard'a yönlendir
-                  if (window.location.pathname.startsWith('/report-fault/')) {
-                    console.log('🔘 [TOUR] Redirecting to Dashboard after tour completion');
-                    setTimeout(() => {
-                      window.location.href = '/';
-                    }, 500);
-                  }
+                  // Dashboard'a yönlendir (hangi sayfada olursak olalım)
+                  console.log('🔘 [TOUR] Redirecting to Dashboard after tour completion');
+                  setTimeout(() => {
+                    window.location.href = '/';
+                  }, 300);
                 }
               } catch (e) {
                 console.error('❌ [TOUR] Error parsing tour data:', e);
               }
             }
-            newDriver.destroy();
+            const driverInstance = driverObjRef.current;
+            if (driverInstance) {
+              driverInstance.destroy();
+            }
           },
           onCloseClick: () => {
             console.log('🔘 [TOUR] Tour closed by user - checking if should redirect to Dashboard');
@@ -711,13 +765,11 @@ export function useProductTour() {
                   // Tur bitmiş, localStorage'ı temizle
                   localStorage.removeItem('active_tour');
                   
-                  // Eğer ReportFault sayfasındaysak Dashboard'a yönlendir
-                  if (window.location.pathname.startsWith('/report-fault/')) {
-                    console.log('🔘 [TOUR] Redirecting to Dashboard after tour close');
-                    setTimeout(() => {
-                      window.location.href = '/';
-                    }, 500);
-                  }
+                  // Dashboard'a yönlendir (hangi sayfada olursak olalım)
+                  console.log('🔘 [TOUR] Redirecting to Dashboard after tour close');
+                  setTimeout(() => {
+                    window.location.href = '/';
+                  }, 300);
                 }
               } catch (e) {
                 console.error('❌ [TOUR] Error parsing tour data:', e);
